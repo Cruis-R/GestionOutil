@@ -1,0 +1,6 @@
+{
+  "name": "Alertes",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./GestionDesAlertes.js"
+}

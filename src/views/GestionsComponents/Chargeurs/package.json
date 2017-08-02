@@ -1,0 +1,6 @@
+{
+  "name": "Chargeurs",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./GestionDesChargeurs.js"
+}

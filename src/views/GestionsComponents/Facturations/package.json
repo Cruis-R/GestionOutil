@@ -1,0 +1,6 @@
+{
+  "name": "Facturations",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./GestionDesFacturations.js"
+}

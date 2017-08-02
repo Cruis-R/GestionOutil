@@ -1,0 +1,6 @@
+{
+  "name": "Batteries",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./GestionDesBatteries.js"
+}

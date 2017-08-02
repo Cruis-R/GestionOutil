@@ -1,0 +1,6 @@
+{
+  "name": "Flottes",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./GestionDesFlottes.js"
+}

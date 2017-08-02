@@ -1,0 +1,6 @@
+{
+  "name": "DroitsdeConduite",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./GestionDesDroitsdeConduite.js"
+}
