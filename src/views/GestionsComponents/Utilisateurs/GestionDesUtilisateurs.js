@@ -48,7 +48,7 @@ export default class GestionDesUtilisateurs extends Component {
       isInsertProfilModal : !this.state.isInsertProfilModal
     });
   }
-  UtilisateursGestionFormatter(cell,row){
+  utilisateursGestionFormatter(cell,row){
     return (
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-4">Modifier</button>
@@ -259,7 +259,7 @@ export default class GestionDesUtilisateurs extends Component {
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
-                        dataFormat={ this.UtilisateursGestionFormatter }>
+                        dataFormat={ this.utilisateursGestionFormatter }>
                         Gestion
                       </TableHeaderColumn>
                     </BootstrapTable>
