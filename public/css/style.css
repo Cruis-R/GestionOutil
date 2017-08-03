@@ -1433,12 +1433,20 @@ pre {
 .table {
   width: 100%;
   max-width: 100%;
+  overflow: auto;
   margin-bottom: 1rem;
+  table-layout: fixed;
+  overflow: auto;
   background-color: transparent; }
-  .table th,
+  .table th{
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #cfd8dc;}
   .table td {
     padding: 0.75rem;
     vertical-align: top;
+    overflow: auto;
+    white-space: nowrap;
     border-top: 1px solid #cfd8dc; }
   .table thead th {
     vertical-align: bottom;
