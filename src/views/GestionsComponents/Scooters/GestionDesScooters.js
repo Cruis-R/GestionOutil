@@ -1,30 +1,41 @@
+import ReactDOM from 'react-dom'
 import React, { Component } from 'react';
-import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
+import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button, Progress } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
 const data = [{
-  "id_user":"1",
-  "username":"CruisR",
-  "nom" : "QIAN",
-  "prenom" : "Yuchao",
-  "email" : "yuchao.qian@efrei.net",
-  "tel" : "0650651584",
-  "password" : "123456",
-  "profil" : "1",
-  "societe" : "mobion"
+  "id_scooter" : 1,
+  "num_cruisrent" : "00000001",
+  "statut" : 1,
+  "actif" : true ,
+  "boitier" : true,
+  "contrat" : false,
+  "immat" : "00000001",
+  "date_immat" : "2017-08-03",
+  "type_usage" : 1,
+  "nb_kms" : 150
 }];
-const profil_data=[{
-  "id_profil" : 1,
-  "lib_profil": "Administrateur"
-}]
 export default class GestionDesScooters extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isInsertScooterModal : false
+      isInsertScooterModal : false,
+      isAssocierContratModal : false,
+      isAssocierBoitierModal : false,
+      isInfoCompletModal : false,
+      isScooterContratModal : false,
+      contratModalType : 1,
+      boitierModalType : 1,
+      scooterConcerne : {}
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertScooterModal = this.toggleInsertScooterModal.bind(this);
+    this.toggleAssocierContratModal = this.toggleAssocierContratModal.bind(this);
+    this.toggleAssocierBoitierModal = this.toggleAssocierBoitierModal.bind(this);
+    this.toggleInfoCompletModal = this.toggleInfoCompletModal.bind(this);
+    this.scootersGestionFormatter = this.scootersGestionFormatter.bind(this);
+    this.scootersBoitierFormatter = this.scootersBoitierFormatter.bind(this);
+    this.scootersContratFormatter = this.scootersContratFormatter.bind(this);
     this.state = {
       activeTab: '1'
     };
@@ -42,22 +53,52 @@ export default class GestionDesScooters extends Component {
       isInsertScooterModal : !this.state.isInsertScooterModal
     });
   }
+  toggleAssocierContratModal(data,type){
+    console.log("toggleAssocierContratModal data",data,"type",type);
+    this.setState({
+      isAssocierContratModal : !this.state.isAssocierContratModal,
+      scooterConcerne : data,
+      contratModalType : type
+    });
+  }
+  toggleAssocierBoitierModal(data,type){
+    console.log("toggleAssocierBoitierModal data",data,"type",type);
+    this.setState({
+      isAssocierBoitierModal : !this.state.isAssocierBoitierModal,
+      scooterConcerne : data,
+      boitierModalType : type
+    });
+  }
+  toggleInfoCompletModal(data){
+    console.log("toggleInfoCompletModal data",data);
+    this.setState({
+      isInfoCompletModal : !this.state.isInfoCompletModal,
+      scooterConcerne : data
+    });
+  }
+  toggleScooterContratModal(data){
+    console.log("ScooterContrat data",data);
+    this.setState({
+      isScooterContratModal : !this.state.isScooterContratModal,
+      scooterConcerne : data
+    });
+  }
   scootersGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-4">Afficher Info</button>
-        <button type="button" className="btn btn-info btn-sm col-sm-4">Voir Contrat</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher les Information</button>{' '}
+        <button type="button" className="btn btn-info btn-sm col-sm-4" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
       </div>
     );
   }
   scootersBoitierFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm">Associer</button>
+        <button type="button" className="btn btn-success btn-sm" onClick={()=>this.toggleAssocierBoitierModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm">Dissocier</button>
+        <button type="button" className="btn btn-danger btn-sm" onClick={()=>this.toggleAssocierBoitierModal(row,2)}>Dissocier</button>
       );
     }
 
@@ -65,34 +106,26 @@ export default class GestionDesScooters extends Component {
   scootersContratFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm">Associer</button>
+        <button type="button" className="btn btn-success btn-sm" onClick={()=>this.toggleAssocierContratModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm">Dissocier</button>
+        <button type="button" className="btn btn-danger btn-sm" onClick={()=>this.toggleAssocierContratModal(row,2)}>Dissocier</button>
       );
     }
-  }
-  ProfilGestionFormatter(cell,row){
-    return (
-      <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-6">Modifier</button>
-        <button type="button" className="btn btn-danger btn-sm col-sm-6">Supprimer</button>
-      </div>
-    );
   }
   scootersInsertButton = () => {
     return (
       <div>
         <button type="button" className="btn btn-primary btn-md" onClick = {this.toggleInsertScooterModal}>Ajouter un Nouveau Scooter</button>
-        <Modal isOpen={this.state.isInsertScooterModal} toggle={this.toggleInsertScooterModal}>
+        <Modal className='modal-lg modal-info' isOpen={this.state.isInsertScooterModal} toggle={this.toggleInsertScooterModal}>
           <ModalHeader toggle={this.toggleInsertScooterModal}>Ajouter un Nouveau Scooter</ModalHeader>
           <ModalBody>
             <div>
               <div className="row">
                 <div className="form-group col-sm-6">
-                  <label htmlFor="numero">Numéro CRUIS RENT</label>
-                  <input type="text" className="form-control" id="numero" placeholder="Numéro CRUIS RENT"/>
+                  <label htmlFor="num_cruisrent">Numéro CRUIS RENT</label>
+                  <input type="text" className="form-control" id="num_cruisrent" placeholder="Numéro CRUIS RENT"/>
                 </div>
                 <div className="form-group col-sm-6">
                   <label htmlFor="immat">Numéro d'immatriculation</label>
@@ -111,7 +144,7 @@ export default class GestionDesScooters extends Component {
               </div>
               <div className="form-group">
                 <label htmlFor="date_immat">Date d'immatriculation</label>
-                <input type="text" className="form-control" id="date_immat" placeholder="Date d'immatriculation"/>
+                <input type="date" className="form-control" id="date_immat" placeholder="Date d'immatriculation"/>
               </div>
               <div className="form-group">
                 <label htmlFor="composants">Détail des Composants consommables</label>
@@ -153,7 +186,7 @@ export default class GestionDesScooters extends Component {
                 </div>
                 <div className="form-group col-sm-6">
                   <label htmlFor="debut_assurance">Date de début d'assurance</label>
-                  <input type="text" className="form-control" id="debut_assurance" placeholder="Date de début d'assurance"/>
+                  <input type="date" className="form-control" id="debut_assurance" placeholder="Date de début d'assurance"/>
                 </div>
                 <div className="form-group col-sm-6">
                   <label htmlFor="duree_assurance">Durée de l'assurance</label>
@@ -170,41 +203,58 @@ export default class GestionDesScooters extends Component {
       </div>
     );
   }
-  profilsInsertButton = () => {
-    return (
-      <div>
-        <button type="button" className="btn btn-info btn-md">Ajouter un Nouveau Profil</button>
-        <Modal isOpen={this.state.isInsertProfilModal} toggle={this.toggleInsertProfilModal}>
-          <ModalHeader toggle={this.toggleInsertProfilModal}>Ajouter un Nouveau Utilisateur</ModalHeader>
-          <ModalBody>
-            <div>
-              <div className="form-group">
-                <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-user"></i></span>
-                  <input type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil"/>
-                </div>
-              </div>
-              <div className="form-group">
-                <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-tag"></i></span>
-                  <input type="text" id="lib_profil" name="lib_profil" className="form-control" placeholder="Nom de Profil"/>
-                </div>
-              </div>
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertProfilModal}>Submit</button>
-            <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertProfilModal}>Cancel</button>
-          </ModalFooter>
-        </Modal>
-      </div>
 
+  createCustomToolBar = props => {
+    /**
+   *  This function only pass one argument, is props object which has following properties
+   *
+   *  {
+   *    components: {  // here are all the components
+   *      exportCSVBtn,  // export CSV button JSX
+   *      insertBtn,  // insert button JSX
+   *      deleteBtn,  // delete button JSX
+   *      showSelectedOnlyBtn,  // show selected button JSX
+   *      searchPanel,  // search panel JSX
+   *      btnGroup,  // button groups JSX
+   *      searchField,  // search field JSX
+   *      clearBtn  // clear search field JSX
+   *    },
+   *    event: {  // here are all the related event you may use it
+   *      openInsertModal,   // call it to open insert modal
+   *      closeInsertModal,  // call it to close insert modal
+   *      dropRow,   // call it to drop row
+   *      showOnlyToogle,   // call it to toogle show only selections
+   *      exportCSV,   // call it to export CSV file
+   *      search  // call it with search text to search table
+   *    }
+   *  }
+   *
+   **/
+    return (
+      <div style={ { margin: '15px', width: "100%" } }>
+        <div className='row'>
+          <div className="col-8">
+            { props.components.btnGroup }
+          </div>
+          <div className="col-4">
+            { props.components.searchPanel }
+          </div>
+        </div>
+      </div>
+    );
+  }
+  createCustomClearButton = (onClick) => {
+    return (
+      <button className='btn btn-warning' onClick={ onClick }>Clean</button>
     );
   }
   render(){
     let cur = this;
     const optionsScooters = {
-      insertBtn: cur.scootersInsertButton
+      insertBtn: cur.scootersInsertButton,
+      toolBar: this.createCustomToolBar,
+      clearSearch: true,
+      clearSearchBtn : this.createCustomClearButton
     }
     return(
       <div className="animated fadeIn">
@@ -237,7 +287,7 @@ export default class GestionDesScooters extends Component {
               <TabPane tabId="1">
                 <div className="card">
                   <div className="card-header">
-                    <i className="fa fa-align-justify"></i> Gestion des Utilisateurs
+                    <i className="fa fa-align-justify"></i> Gestion des Scooters
                   </div>
                   <div className="card-block">
                     <BootstrapTable
@@ -246,6 +296,7 @@ export default class GestionDesScooters extends Component {
                       headerStyle = { { "background-color" : "#63c2de" } }
                       insertRow
                       search>
+
                       <TableHeaderColumn
                         dataField="id_scooter"
                         isKey
@@ -304,14 +355,199 @@ export default class GestionDesScooters extends Component {
 
               </TabPane>
             </TabContent>
-
           </div>
+          {
+            this.state.isAssocierBoitierModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierBoitierModal} toggle={this.toggleAssocierBoitierModal}>
+              <ModalHeader toggle={this.toggleAssocierBoitierModal}>{this.state.boitierModalType===1?"Associer un Boitier Communiquant":"Dissocier un Boitier Communiquant"}</ModalHeader>
+              <ModalBody>
+                <div>
+                  <div className="form-group col-sm-6">
+                    <label htmlFor="id_scooter">Scooter ID</label>
+                    <input type="text" className="form-control" id="id_scooter" placeholder="Scooter ID" defaultValue = {this.state.scooterConcerne["id_scooter"]} disabled/>
+                  </div>
+                  <div className="form-group col-sm-6">
+                    <label htmlFor="id_boitier">Boitier ID</label>
+                    <input type="text" className="form-control" id="id_boitier" placeholder="Boitier ID"/>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierBoitierModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierBoitierModal}>Cancel</button>
+              </ModalFooter>
+            </Modal>
+            :null
+          }
+          {
+            this.state.isAssocierContratModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierContratModal} toggle={this.toggleAssocierContratModal}>
+              <ModalHeader toggle={this.toggleAssocierContratModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
+              <ModalBody>
+                <div>
+                  <div className="form-group col-sm-6">
+                    <label htmlFor="id_scooter">Scooter ID</label>
+                    <input type="text" className="form-control" id="id_scooter" placeholder="Scooter ID" defaultValue = {this.state.scooterConcerne["id_scooter"]} disabled/>
+                  </div>
+                  <div className="form-group col-sm-6">
+                    <label htmlFor="id_contrat">Contrat ID</label>
+                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID"/>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierContratModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
+              </ModalFooter>
+            </Modal>:null
+          }
+          {
+
+            this.state.isInfoCompletModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isInfoCompletModal} toggle={this.toggleInfoCompletModal}>
+              <ModalHeader toggle={this.toggleInfoCompletModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
+              <ModalBody>
+                <div className="row">
+                  <div className="col-sm-6 col-lg-3">
+                    <div className="card">
+                      <div className="card-block">
+                        <div>{this.state.scooterConcerne["immat"]}</div>
+                        <small className="text-muted">No° d'immatriculation</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-sm-6 col-lg-3">
+                    <div className="card">
+                      <div className="card-block">
+                        <div>{this.state.scooterConcerne["type_usage"]}</div>
+                        <small className="text-muted">Type d'usage</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-sm-6 col-lg-3">
+                    <div className="card">
+                      <div className="card-block">
+                        <div>{this.state.scooterConcerne["date_immat"]}</div>
+                        <small className="text-muted">Date d'immatriculation</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-sm-6 col-lg-3">
+                    <div className="card">
+                      <div className="card-block">
+                        <div>{this.state.scooterConcerne["date_immat"]}</div>
+                        <small className="text-muted">Dates de révision</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-group">
+                  <div className="card card-inverse card-info">
+                    <div className="card-block">
+                      <div className="h1 text-muted text-right mb-2">
+                        <i className="icon-speedometer"></i>
+                      </div>
+                      <div className="h4 mb-0">{this.state.scooterConcerne["taux"]?this.state.scooterConcerne["taux"]:"555 E"}</div>
+                      <small className="text-muted text-uppercase font-weight-bold">Taux</small>
+                    </div>
+                  </div>
+                  <div className="card card-inverse card-primary">
+                    <div className="card-block">
+                      <div className="h1 text-muted text-right mb-2">
+                        <i className="icon-speedometer"></i>
+                      </div>
+                      <div className="h4 mb-0">{this.state.scooterConcerne["temp"]?this.state.scooterConcerne["temp"]:"500 h"}</div>
+                      <small className="text-muted text-uppercase font-weight-bold">Temp d'usage</small>
+                    </div>
+                  </div>
+                  <div className="card card-inverse card-success">
+                    <div className="card-block">
+                      <div className="h1 text-muted text-right mb-2">
+                        <i className="icon-speedometer"></i>
+                      </div>
+                      <div className="h4 mb-0">100 KM</div>
+                      <small className="text-muted text-uppercase font-weight-bold">Km Total</small>
+                    </div>
+                  </div>
+                  <div className="card card-inverse card-warning">
+                    <div className="card-block">
+                      <div className="h1 text-muted text-right mb-2">
+                        <i className="icon-speedometer"></i>
+                      </div>
+                      <div className="h4 mb-0">1</div>
+                      <small className="text-muted text-uppercase font-weight-bold">Intervention</small>
+                    </div>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col-6">
+                    <div className="card">
+                      <div className="card-block p-3 clearfix">
+                        <i className="fa fa-laptop bg-info p-3 font-2xl mr-3 float-left"></i>
+                        <div className="h5 text-info mb-0 mt-2">50.2 KM</div>
+                        <div className="text-muted text-uppercase font-weight-bold font-xs">Km Moyen par Mois</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="card">
+                      <div className="card-block p-3 clearfix">
+                        <i className="fa fa-moon-o bg-warning p-3 font-2xl mr-3 float-left"></i>
+                        <div className="h5 text-warning mb-0 mt-2">20.3 KM</div>
+                        <div className="text-muted text-uppercase font-weight-bold font-xs">Km en cour</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="card">
+                      <div className="card-block p-3 clearfix">
+                        <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
+                        <div className="h5 text-primary mb-0 mt-2">80.2 KM</div>
+                        <div className="text-muted text-uppercase font-weight-bold font-xs">Km année</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="card">
+                      <div className="card-block p-3 clearfix">
+                        <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
+                        <div className="h5 text-primary mb-0 mt-2">65.2 KM/H</div>
+                        <div className="text-muted text-uppercase font-weight-bold font-xs">Vitesse moyenne</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div>Détail des contrats affecté</div>
+                  <div>Description des interventions par contrat et par conducteur</div>
+                  <div>Position géographique du scooter</div>
+                  <div>Nombre d’arrêt sur un période</div>
+                  <div>Visualisation des parcours sur une période</div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInfoCompletModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInfoCompletModal}>Cancel</button>
+              </ModalFooter>
+            </Modal>:null
+          }
+          {
+            this.state.isScooterContratModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierContratModal} toggle={this.toggleAssocierContratModal}>
+              <ModalHeader toggle={this.toggleAssocierContratModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
+              <ModalBody>
+                <div>
+                  lien
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierContratModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
+              </ModalFooter>
+            </Modal>:null
+          }
         </div>
       </div>
     );
   }
 }
-/*
-
-
-*/
