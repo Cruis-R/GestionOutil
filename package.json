@@ -1,6 +1,6 @@
 {
-  "name": "coreui-react",
-  "version": "1.0.0-alpha.6",
+  "name": "CruisRent",
+  "version": "1.0.0",
   "private": true,
   "homepage": ".",
   "devDependencies": {

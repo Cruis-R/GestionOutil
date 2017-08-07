@@ -32,6 +32,8 @@ export default class GestionDesContrats extends Component {
       isModifierContratModal : false,
       contratConcerne : null,
       isModifierTypeContratModal : false,
+      isAssocierContratModal : false,
+      typeAssocierContratModal : 1,
       typeContratConcerne : null
     }
     this.toggle = this.toggle.bind(this);
@@ -39,7 +41,9 @@ export default class GestionDesContrats extends Component {
     this.toggleInsertTypeContratModal = this.toggleInsertTypeContratModal.bind(this);
     this.toggleModifierContratModal = this.toggleModifierContratModal.bind(this);
     this.toggleModifierTypeContratModal = this.toggleModifierTypeContratModal.bind(this);
+    this.toggleAssocierContratModal = this.toggleAssocierContratModal.bind(this);
     this.contratsGestionFormatter = this.contratsGestionFormatter.bind(this);
+    this.contratsAssocierFormatter = this.contratsAssocierFormatter.bind(this);
     this.typeContratGestionFormatter = this.typeContratGestionFormatter.bind(this);
   }
 
@@ -72,14 +76,28 @@ export default class GestionDesContrats extends Component {
       isInsertTypeContratModal : !this.state.isInsertTypeContratModal
     });
   }
+  toggleAssocierContratModal(type,data){
+    this.setState({
+      isAssocierContratModal : !this.state.isAssocierContratModal,
+      typeAssocierContratModal : type,
+      contratConcerne : data
+    });
+  }
   contratsGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierContratModal(row)}>Modifier</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierContratModal(row)}>Afficher/Modifier</button>
+        <button type="button" className="btn btn-info btn-sm col-sm-4" disabled>Scooters</button>
         <button type="button" className="btn btn-danger btn-sm col-sm-4" disabled>Clore</button>
-        <button type="button" className="btn btn-warning btn-sm col-sm-4" disabled>Supprimer</button>
       </div>
     );
+  }
+  contratsAssocierFormatter(cell,row){
+    if(cell){
+      return(<button type="button" className="btn btn-danger btn-sm col" onClick = {()=>this.toggleAssocierContratModal(2,row)}>Dissocier</button>)
+    }else {
+      return(<button type="button" className="btn btn-success btn-sm col"onClick = {()=>this.toggleAssocierContratModal(1,row)}>Associer</button>)
+    }
   }
   typeContratGestionFormatter(cell,row){
     return (
@@ -91,9 +109,9 @@ export default class GestionDesContrats extends Component {
   }
   actifFormatter(cell,row){
     if(cell){
-      return <button type="button" className="btn btn-success btn-sm col-sm-6">Oui</button>
+      return <button type="button" className="btn btn-success btn-sm col">Oui</button>
     }else {
-      return <button type="button" className="btn btn-danger btn-sm col-sm-6">Non</button>
+      return <button type="button" className="btn btn-danger btn-sm col">Non</button>
     }
   }
   contratsInsertButton = () => {
@@ -259,15 +277,13 @@ export default class GestionDesContrats extends Component {
                       <TableHeaderColumn
                         dataField="id_contrat"
                         isKey
-                        dataSort
-                        width = "5%">
+                        dataSort>
                         ID
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="niveau_assurance"
-                        dataSort
-                        width = "7%">
-                        Niveau Assurance
+                        dataField="datedebut"
+                        dataSort>
+                        Date Début
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="address"
@@ -276,47 +292,24 @@ export default class GestionDesContrats extends Component {
                         Address
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="datedebut"
+                        dataField="flotte"
                         dataSort
-                        width = "7%">
-                        Date Début
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="annexe_batterie"
-                        dataSort
-                        width = "7%">
-                        Annexe Batterie
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="annexe_chargeur"
-                        dataSort
-                        width = "7%">
-                        Annexe Chargeur
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="annexe_accessoires"
-                        dataSort
-                        width = "7%">
-                        Annexe Accessoires
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="annexe_scooter"
-                        dataSort
-                        width = "7%">
-                        Annexe Scooter
+                        dataFormat = {this.contratsAssocierFormatter}
+                        tdStyle={{textAlign : "center"}}>
+                        Flotte
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="actif"
                         dataSort
                         dataFormat = {this.actifFormatter}
-                        tdStyle={{textAlign : "center"}}
-                        width = "7%">
+                        tdStyle={{textAlign : "center"}}>
                         Actif
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
                         dataFormat={ this.contratsGestionFormatter }
-                        tdStyle={{textAlign : "center"}}>
+                        tdStyle={{textAlign : "center"}}
+                        width = "25%">
                         Gestion
                       </TableHeaderColumn>
                     </BootstrapTable>
@@ -477,6 +470,48 @@ export default class GestionDesContrats extends Component {
             <ModalFooter>
               <button type="button" className="btn btn-sm btn-success" onClick={this.toggleModifierTypeContratModal}>Submit</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierTypeContratModal}>Cancel</button>
+            </ModalFooter>
+          </Modal>:null
+        }
+        {
+          this.state.isAssocierContratModal?<Modal isOpen={this.state.isAssocierContratModal} toggle={this.toggleAssocierContratModal}>
+            <ModalHeader toggle={this.toggleAssocierContratModal}>{this.state.typeAssocierContratModal===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
+            <ModalBody>
+              {this.state.typeAssocierContratModal===1?
+                <div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="id_contrat">Contrat ID</label>
+                    <input type="input" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue={this.state.contratConcerne["id_contrat"]} disabled/>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="id_flotte">Flotte ID</label>
+                    <input type="input" className="form-control" id="id_flotte" placeholder="Flotte ID"/>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="address">Adresse de facturation</label>
+                    <input type="input" className="form-control" id="address" placeholder="Adresse de facturation"/>
+                  </div>
+                </div>
+                :
+                <div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="id_contrat">Contrat ID</label>
+                    <input type="input" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue={this.state.contratConcerne["id_contrat"]} disabled/>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="id_flotte">Flotte ID</label>
+                    <input type="input" className="form-control" id="id_flotte" placeholder="Flotte ID" defaultValue={this.state.contratConcerne["id_flotte"]} disabled/>
+                  </div>
+                  <div className="form-group col-sm-4">
+                    <label htmlFor="mention">Mention</label>
+                    <input type="text" className="form-control" id="mention" placeholder="Mention"/>
+                  </div>
+                </div>
+              }
+            </ModalBody>
+            <ModalFooter>
+              <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierContratModal}>Submit</button>
+              <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
             </ModalFooter>
           </Modal>:null
         }

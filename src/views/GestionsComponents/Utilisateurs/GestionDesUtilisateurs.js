@@ -70,7 +70,7 @@ export default class GestionDesUtilisateurs extends Component {
   utilisateursGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierUtilisateurModal(row)}>Modifier</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierUtilisateurModal(row)}>Afflicher/Modifier</button>
         <button type="button" className="btn btn-warning btn-sm col-sm-4">Désactiver</button>
         <button type="button" className="btn btn-danger btn-sm col-sm-4">Supprimer</button>
       </div>
@@ -245,61 +245,28 @@ export default class GestionDesUtilisateurs extends Component {
                       <TableHeaderColumn
                         dataField="id_user"
                         isKey
-                        dataSort
-                        width = "5%">
+                        dataSort>
                         ID
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="username"
-                        dataSort
-                        width = "7%">
+                        dataSort>
                         User Name
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="nom"
-                        dataSort
-                        width = "7%">
+                        dataSort>
                         Nom
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="prenom"
-                        dataSort
-                        width = "7%">
+                        dataSort>
                         Prénom
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="password"
-                        dataSort
-                        width = "7%">
-                        Mot de passe
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="profil"
-                        dataSort
-                        width = "7%">
-                        Droit
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="societe"
-                        dataSort
-                        width = "7%">
-                        Société
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="email"
-                        dataSort
-                        width = "16%">
-                        Mél
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="tel"
-                        dataSort
-                        width = "10%">
-                        Tel
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
                         dataField=""
-                        dataFormat={ this.utilisateursGestionFormatter }>
+                        dataFormat={ this.utilisateursGestionFormatter }
+                        width = "30%">
                         Gestion
                       </TableHeaderColumn>
                     </BootstrapTable>
@@ -345,63 +312,63 @@ export default class GestionDesUtilisateurs extends Component {
         {
           this.state.isModifierUtilisateurModal?
           <Modal isOpen={this.state.isModifierUtilisateurModal} toggle={this.toggleModifierUtilisateurModal}>
-            <ModalHeader toggle={this.toggleModifierUtilisateurModal}>Modifier un Utilisateur</ModalHeader>
+            <ModalHeader toggle={this.toggleModifierUtilisateurModal}>Afficher/Modifier un Utilisateur</ModalHeader>
             <ModalBody>
               <div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-user"></i></span>
-                    <input type="text" id="username" name="username" className="form-control" placeholder="Username" defaultValue={this.state.utilisateurConcerne["username"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-user"></i></span>
                     <span className="input-group-addon col-3">Username</span>
+                    <input type="text" id="username" name="username" className="form-control" placeholder="Username" defaultValue={this.state.utilisateurConcerne["username"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-tag"></i></span>
-                    <input type="text" id="nom" name="nom" className="form-control" placeholder="Nom" defaultValue={this.state.utilisateurConcerne["nom"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-tag"></i></span>
                     <span className="input-group-addon col-3">Nom</span>
+                    <input type="text" id="nom" name="nom" className="form-control" placeholder="Nom" defaultValue={this.state.utilisateurConcerne["nom"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-tags"></i></span>
-                    <input type="text" id="prenom" name="prenom" className="form-control" placeholder="Prenom" defaultValue={this.state.utilisateurConcerne["prenom"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-tags"></i></span>
                     <span className="input-group-addon col-3">Prenom</span>
+                    <input type="text" id="prenom" name="prenom" className="form-control" placeholder="Prenom" defaultValue={this.state.utilisateurConcerne["prenom"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-asterisk"></i></span>
-                    <input type="input" id="motdepasse" name="motdepasse" className="form-control" placeholder="Mot de Passe" defaultValue={this.state.utilisateurConcerne["password"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-asterisk"></i></span>
                     <span className="input-group-addon col-3">Mot de Passe</span>
+                    <input type="input" id="motdepasse" name="motdepasse" className="form-control" placeholder="Mot de Passe" defaultValue={this.state.utilisateurConcerne["password"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-archive"></i></span>
-                    <input type="text" id="profil" name="profil" className="form-control" placeholder="Profil" defaultValue={this.state.utilisateurConcerne["profil"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-archive"></i></span>
                     <span className="input-group-addon col-3">Profil</span>
+                    <input type="text" id="profil" name="profil" className="form-control" placeholder="Profil" defaultValue={this.state.utilisateurConcerne["profil"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-suitcase"></i></span>
-                    <input type="text" id="societe" name="societe" className="form-control" placeholder="Société" defaultValue={this.state.utilisateurConcerne["societe"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-suitcase"></i></span>
                     <span className="input-group-addon col-3">Société</span>
+                    <input type="text" id="societe" name="societe" className="form-control" placeholder="Société" defaultValue={this.state.utilisateurConcerne["societe"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-envelope"></i></span>
-                    <input type="email" id="email" name="email" className="form-control" placeholder="Email" defaultValue={this.state.utilisateurConcerne["email"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-envelope"></i></span>
                     <span className="input-group-addon col-3">Email</span>
+                    <input type="email" id="email" name="email" className="form-control" placeholder="Email" defaultValue={this.state.utilisateurConcerne["email"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-phone"></i></span>
-                    <input type="tel" id="tel" name="tel" className="form-control" placeholder="Tel" defaultValue={this.state.utilisateurConcerne["tel"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-phone"></i></span>
                     <span className="input-group-addon col-3">Tel</span>
+                    <input type="tel" id="tel" name="tel" className="form-control" placeholder="Tel" defaultValue={this.state.utilisateurConcerne["tel"]}/>
                   </div>
                 </div>
               </div>
@@ -420,16 +387,16 @@ export default class GestionDesUtilisateurs extends Component {
               <div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-user"></i></span>
-                    <input type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil" defaultValue={this.state.profilConcerne["id_profil"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-user"></i></span>
                     <span className="input-group-addon col-3">Profil ID</span>
+                    <input type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil" defaultValue={this.state.profilConcerne["id_profil"]}/>
                   </div>
                 </div>
                 <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon"><i className="fa fa-tag"></i></span>
-                    <input type="text" id="lib_profil" name="lib_profil" className="form-control" placeholder="Nom de Profil" defaultValue={this.state.profilConcerne["lib_profil"]}/>
+                    <span className="input-group-addon col-1"><i className="fa fa-tag"></i></span>
                     <span className="input-group-addon col-3">Nom de Profil</span>
+                    <input type="text" id="lib_profil" name="lib_profil" className="form-control" placeholder="Nom de Profil" defaultValue={this.state.profilConcerne["lib_profil"]}/>
                   </div>
                 </div>
               </div>

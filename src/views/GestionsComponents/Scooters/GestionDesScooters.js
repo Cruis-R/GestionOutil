@@ -19,6 +19,7 @@ export default class GestionDesScooters extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      activeTab: '1',
       isInsertScooterModal : false,
       isAssocierContratModal : false,
       isAssocierBoitierModal : false,
@@ -36,9 +37,6 @@ export default class GestionDesScooters extends Component {
     this.scootersGestionFormatter = this.scootersGestionFormatter.bind(this);
     this.scootersBoitierFormatter = this.scootersBoitierFormatter.bind(this);
     this.scootersContratFormatter = this.scootersContratFormatter.bind(this);
-    this.state = {
-      activeTab: '1'
-    };
   }
 
   toggle(tab) {
@@ -86,19 +84,19 @@ export default class GestionDesScooters extends Component {
   scootersGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher les Information</button>{' '}
-        <button type="button" className="btn btn-info btn-sm col-sm-4" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-6" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher</button>{' '}
+        <button type="button" className="btn btn-info btn-sm col-sm-6" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
       </div>
     );
   }
   scootersBoitierFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm" onClick={()=>this.toggleAssocierBoitierModal(row,1)}>Associer</button>
+        <button type="button" className="btn btn-success btn-sm col" onClick={()=>this.toggleAssocierBoitierModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm" onClick={()=>this.toggleAssocierBoitierModal(row,2)}>Dissocier</button>
+        <button type="button" className="btn btn-danger btn-sm col" onClick={()=>this.toggleAssocierBoitierModal(row,2)}>Dissocier</button>
       );
     }
 
@@ -106,11 +104,11 @@ export default class GestionDesScooters extends Component {
   scootersContratFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm" onClick={()=>this.toggleAssocierContratModal(row,1)}>Associer</button>
+        <button type="button" className="btn btn-success btn-sm col" onClick={()=>this.toggleAssocierContratModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm" onClick={()=>this.toggleAssocierContratModal(row,2)}>Dissocier</button>
+        <button type="button" className="btn btn-danger btn-sm col" onClick={()=>this.toggleAssocierContratModal(row,2)}>Dissocier</button>
       );
     }
   }
@@ -300,48 +298,43 @@ export default class GestionDesScooters extends Component {
                       <TableHeaderColumn
                         dataField="id_scooter"
                         isKey
-                        dataSort
-                        width = "5%">
+                        dataSort>
                         ID
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="num_cruisrent"
-                        dataSort
-                        width = "7%">
+                        dataSort>
                         Numéro CruisRent
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="statut"
-                        dataSort
-                        width = "7%">
+                        dataSort>
                         Statut
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="actif"
-                        dataSort
-                        width = "7%">
+                        dataSort>
                         Active
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="boitier"
                         dataSort
                         dataFormat={ this.scootersBoitierFormatter }
-                        tdStyle = {{"textAlign" : "center"}}
-                        width = "10%">
+                        tdStyle = {{"textAlign" : "center"}}>
                         Boitier
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="contrat"
                         dataSort
                         dataFormat={ this.scootersContratFormatter }
-                        tdStyle = {{"textAlign" : "center"}}
-                        width = "10%">
+                        tdStyle = {{"textAlign" : "center"}}>
                         Contrat
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
                         dataFormat={ this.scootersGestionFormatter }
-                        tdStyle = {{"textAlign" : "center"}}>
+                        tdStyle = {{"textAlign" : "center"}}
+                        width = "25%">
                         Gestion
                       </TableHeaderColumn>
                     </BootstrapTable>
@@ -368,7 +361,7 @@ export default class GestionDesScooters extends Component {
                   </div>
                   <div className="form-group col-sm-6">
                     <label htmlFor="id_boitier">Boitier ID</label>
-                    <input type="text" className="form-control" id="id_boitier" placeholder="Boitier ID"/>
+                    <input type="text" className="form-control" id="id_boitier" placeholder="Boitier ID" defaultValue = {this.state.contratModalType===1?"":this.state.scooterConcerne["id_boitier"]} disabled={this.state.contratModalType===1?false:true}/>
                   </div>
                 </div>
               </ModalBody>
@@ -385,13 +378,13 @@ export default class GestionDesScooters extends Component {
               <ModalHeader toggle={this.toggleAssocierContratModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
               <ModalBody>
                 <div>
-                  <div className="form-group col-sm-6">
+                  <div className="form-group col-sm-12">
                     <label htmlFor="id_scooter">Scooter ID</label>
                     <input type="text" className="form-control" id="id_scooter" placeholder="Scooter ID" defaultValue = {this.state.scooterConcerne["id_scooter"]} disabled/>
                   </div>
-                  <div className="form-group col-sm-6">
+                  <div className="form-group col-sm-12">
                     <label htmlFor="id_contrat">Contrat ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID"/>
+                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.contratModalType===1?"":this.state.scooterConcerne["id_contrat"]} disabled={this.state.contratModalType===1?false:true}/>
                   </div>
                 </div>
               </ModalBody>
@@ -405,7 +398,7 @@ export default class GestionDesScooters extends Component {
 
             this.state.isInfoCompletModal?
             <Modal className='modal-lg modal-info' isOpen={this.state.isInfoCompletModal} toggle={this.toggleInfoCompletModal}>
-              <ModalHeader toggle={this.toggleInfoCompletModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
+              <ModalHeader toggle={this.toggleInfoCompletModal}>Information du Scooter</ModalHeader>
               <ModalBody>
                 <div className="row">
                   <div className="col-sm-6 col-lg-3">
