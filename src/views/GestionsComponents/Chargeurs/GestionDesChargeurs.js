@@ -10,9 +10,10 @@ const data = [{
   "date_production" : "2017-08-03" ,
   "date_acquisition" : "2017-08-03",
   "date_ajout" : "2017-08-03",
+  "locataire" : "CruisR",
   "identifiant" : "001"
 },{
-  "id_chargeur" : 1,
+  "id_chargeur" : 2,
   "num_cruisrent" : "34",
   "statut" : '2',
   "date_production" : "2017-08-03" ,
@@ -20,7 +21,7 @@ const data = [{
   "date_ajout" : "2017-08-03",
   "identifiant" : "002"
 },{
-  "id_chargeur" : 1,
+  "id_chargeur" : 3,
   "num_cruisrent" : "34",
   "statut" : '3',
   "date_production" : "2017-08-03" ,
@@ -109,7 +110,7 @@ export default class GestionDesChargeurs extends Component {
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierLocataireModal(row,2)}>Dissocier</button>
+        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierLocataireModal(row,2)}>Dissocier {cell}</button>
       );
     }
   }
@@ -239,24 +240,28 @@ export default class GestionDesChargeurs extends Component {
                       <TableHeaderColumn
                         dataField="id_chargeur"
                         isKey
-                        dataSort>
+                        dataSort
+                        searchable={ false }>
                         ID
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="num_cruisrent"
-                        dataSort>
-                        Numéro CruisRent
+                        dataField="identifiant"
+                        dataSort
+                        filter={ { type: 'TextFilter', placeholder: "Identifiant"} }>
+                        Identifiant
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="statut"
                         dataSort
-                        dataFormat = {this.chargeursStatutFormatter}>
+                        dataFormat = {this.chargeursStatutFormatter}
+                        filter={ { type: 'SelectFilter', options: statut, placeholder: "Statut"} }>
                         Statut
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="locataire"
                         dataSort
                         dataFormat={ this.chargeursLocataireFormatter }
+                        filter={ { type: 'TextFilter', placeholder: "Locataire"} }
                         tdStyle = {{"textAlign" : "center"}}>
                         Locataire
                       </TableHeaderColumn>
@@ -264,6 +269,7 @@ export default class GestionDesChargeurs extends Component {
                         dataField=""
                         dataFormat={ this.chargeursGestionFormatter }
                         tdStyle = {{"textAlign" : "center"}}
+                        searchable={ false }
                         width = "25%">
                         Gestion
                       </TableHeaderColumn>
