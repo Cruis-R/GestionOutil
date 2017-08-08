@@ -146,11 +146,11 @@ export default class GestionDesBoitiers extends Component {
                   <input type="date" className="form-control" id="date_reception" placeholder="Date de Reception"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="date_acquisition">Date d'acquisition</label>
+                  <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
                   <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="date_activation">Date d'activation</label>
+                  <label htmlFor="date_activation">Date d&#39;activation</label>
                   <input type="date" className="form-control" id="date_activation" placeholder="Date d'activation"/>
                 </div>
                 <div className="form-group col-sm-6">
@@ -334,7 +334,7 @@ export default class GestionDesBoitiers extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_contrat">Scooter ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Scooter ID"/>
+                    <input type="text" className="form-control" id="id_contrat" placeholder="Scooter ID" defaultValue = {this.state.scooterModalType===1?null:this.state.boitierConcerne["id_locataire"]} disabled={this.state.scooterModalType!==1}/>
                   </div>
                 </div>
               </ModalBody>
@@ -381,11 +381,11 @@ export default class GestionDesBoitiers extends Component {
                     <input type="date" className="form-control" id="date_reception" placeholder="Date de Reception" defaultValue={this.state.boitierConcerne["date_reception"]}/>
                   </div>
                   <div className="form-group col-sm-4">
-                    <label htmlFor="date_acquisition">Date d'acquisition</label>
+                    <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
                     <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition" defaultValue={this.state.boitierConcerne["date_acquisition"]}/>
                   </div>
                   <div className="form-group col-sm-4">
-                    <label htmlFor="date_activation">Date d'activation</label>
+                    <label htmlFor="date_activation">Date d&#39;activation</label>
                     <input type="date" className="form-control" id="date_activation" placeholder="Date d'activation" defaultValue={this.state.boitierConcerne["date_activation"]}/>
                   </div>
                   <div className="form-group col-sm-6">

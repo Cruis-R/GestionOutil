@@ -146,11 +146,11 @@ export default class GestionDesBatteries extends Component {
                   <input type="date" className="form-control" id="date_production" placeholder="Date de Production"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="date_acquisition">Date d'acquisition</label>
+                  <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
                   <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="date_ajout">Date d'ajout</label>
+                  <label htmlFor="date_ajout">Date d&#39;ajout</label>
                   <input type="date" className="form-control" id="date_ajout" placeholder="Date d'ajout"/>
                 </div>
                 <div className="form-group col-sm-6">
@@ -339,7 +339,7 @@ export default class GestionDesBatteries extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_locataire">Locataire ID</label>
-                    <input type="text" className="form-control" id="id_locataire" placeholder="Locataire ID"/>
+                    <input type="text" className="form-control" id="id_locataire" placeholder="Locataire ID" defaultValue = {this.state.locataireModalType===1?null:this.state.batterieConcerne["id_locataire"]} disabled={this.state.locataireModalType!==1}/>
                   </div>
                 </div>
               </ModalBody>
@@ -401,7 +401,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block">
                         <div>{this.state.batterieConcerne["date_acquisition"]}</div>
-                        <small className="text-muted">Date d'Acquisition</small>
+                        <small className="text-muted">Date d&#39;Acquisition</small>
                       </div>
                     </div>
                   </div>
@@ -409,7 +409,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block">
                         <div>{this.state.batterieConcerne["date_ajout"]}</div>
-                        <small className="text-muted">Date d'Ajout</small>
+                        <small className="text-muted">Date d&#39;Ajout</small>
                       </div>
                     </div>
                   </div>
@@ -467,7 +467,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-moon-o bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-warning mb-0 mt-2">{this.state.batterieConcerne["puissance"]}</div>
+                        <div className="h5 text-info mb-0 mt-2">{this.state.batterieConcerne["puissance"]}</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">Puissance</div>
                       </div>
                     </div>
@@ -476,7 +476,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">{this.state.batterieConcerne["bms"]}</div>
+                        <div className="h5 text-info mb-0 mt-2">{this.state.batterieConcerne["bms"]}</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">BMS</div>
                       </div>
                     </div>
@@ -485,7 +485,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">{this.state.batterieConcerne["identifiant_bms"]}</div>
+                        <div className="h5 text-info mb-0 mt-2">{this.state.batterieConcerne["identifiant_bms"]}</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">Identifiant du BMS</div>
                       </div>
                     </div>
@@ -494,7 +494,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">{this.state.batterieConcerne["cellule"]}</div>
+                        <div className="h5 text-info mb-0 mt-2">{this.state.batterieConcerne["cellule"]}</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">Cellule</div>
                       </div>
                     </div>
@@ -503,7 +503,7 @@ export default class GestionDesBatteries extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">{this.state.batterieConcerne["nb_cycle"]}</div>
+                        <div className="h5 text-info mb-0 mt-2">{this.state.batterieConcerne["nb_cycles"]}</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">Nombre Cycle</div>
                       </div>
                     </div>
