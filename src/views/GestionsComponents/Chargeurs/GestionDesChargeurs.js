@@ -128,11 +128,11 @@ export default class GestionDesChargeurs extends Component {
                   <input type="date" className="form-control" id="date_production" placeholder="Date de Production"/>
                 </div>
                 <div className="form-group col-sm-12">
-                  <label htmlFor="date_acquisition">Date d'acquisition</label>
+                  <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
                   <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition"/>
                 </div>
                 <div className="form-group col-sm-12">
-                  <label htmlFor="date_ajout">Date d'ajout</label>
+                  <label htmlFor="date_ajout">Date d&#39;ajout</label>
                   <input type="date" className="form-control" id="date_ajout" placeholder="Date d'ajout"/>
                 </div>
                 <div className="form-group col-sm-12">
@@ -297,7 +297,7 @@ export default class GestionDesChargeurs extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_contrat">Locataire ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Locataire ID"/>
+                    <input type="text" className="form-control" id="id_contrat" placeholder="Locataire ID" defaultValue = {this.state.locataireModalType===1?null:this.state.chargeurConcerne["id_locataire"]} disabled={this.state.locataireModalType!==1}/>
                   </div>
                 </div>
               </ModalBody>
@@ -359,7 +359,7 @@ export default class GestionDesChargeurs extends Component {
                     <div className="card">
                       <div className="card-block">
                         <div>{this.state.chargeurConcerne["date_acquisition"]}</div>
-                        <small className="text-muted">Date d'Acquisition</small>
+                        <small className="text-muted">Date d&#39;Acquisition</small>
                       </div>
                     </div>
                   </div>
@@ -367,7 +367,7 @@ export default class GestionDesChargeurs extends Component {
                     <div className="card">
                       <div className="card-block">
                         <div>{this.state.chargeurConcerne["date_ajout"]}</div>
-                        <small className="text-muted">Date d'Ajout</small>
+                        <small className="text-muted">Date d&#39;Ajout</small>
                       </div>
                     </div>
                   </div>
