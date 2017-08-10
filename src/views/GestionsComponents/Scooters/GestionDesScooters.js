@@ -610,8 +610,7 @@ export default class GestionDesScooters extends Component {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleScooterContratModal}>Submit</button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleScooterContratModal}>Cancel</button>
+                <button type="button" className="btn btn-sm btn-primary" onClick={this.toggleScooterContratModal}>Close</button>
               </ModalFooter>
             </Modal>:null
           }

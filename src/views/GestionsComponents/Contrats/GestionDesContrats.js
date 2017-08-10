@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
+import mysql from 'mysql2/promise'
 const type_data = [{
   "id_type_contrat":"1",
   "nom":"Contrat_1",
   "description" : "Template_1",
-  "niveau_service" : "Yuchao",
+  "niveau_service" : "1",
   "durée" : 12,
   "tarifmensuel" : 500,
   "assurance_rc" : "Allianz"
@@ -30,6 +31,7 @@ export default class GestionDesContrats extends Component {
       isInsertContratModal : false,
       isInsertTypeContratModal : false,
       isModifierContratModal : false,
+      isScooterModalModal : false,
       contratConcerne : null,
       isModifierTypeContratModal : false,
       isAssocierContratModal : false,
@@ -41,18 +43,30 @@ export default class GestionDesContrats extends Component {
     this.toggleInsertTypeContratModal = this.toggleInsertTypeContratModal.bind(this);
     this.toggleModifierContratModal = this.toggleModifierContratModal.bind(this);
     this.toggleModifierTypeContratModal = this.toggleModifierTypeContratModal.bind(this);
+    this.toggleScooterModal = this.toggleScooterModal.bind(this);
     this.toggleAssocierContratModal = this.toggleAssocierContratModal.bind(this);
     this.contratsGestionFormatter = this.contratsGestionFormatter.bind(this);
     this.contratsAssocierFormatter = this.contratsAssocierFormatter.bind(this);
     this.typeContratGestionFormatter = this.typeContratGestionFormatter.bind(this);
   }
-
+  componentDidMount(){
+    this.connectToDB();
+  }
+  connectToDB(){
+  
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
         activeTab: tab
       });
     }
+  }
+  toggleScooterModal(data) {
+    this.setState({
+      isScooterModalModal : !this.state.isScooterModalModal,
+      contratConcerne : data
+    });
   }
   toggleModifierContratModal(data){
     this.setState({
@@ -87,7 +101,7 @@ export default class GestionDesContrats extends Component {
     return (
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierContratModal(row)}>Afficher/Modifier</button>
-        <button type="button" className="btn btn-info btn-sm col-sm-4" disabled>Scooters</button>
+        <button type="button" className="btn btn-info btn-sm col-sm-4" onClick={()=>this.toggleScooterModal(row)}>Scooters</button>
         <button type="button" className="btn btn-danger btn-sm col-sm-4" disabled>Clore</button>
       </div>
     );
@@ -512,6 +526,105 @@ export default class GestionDesContrats extends Component {
             <ModalFooter>
               <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierContratModal}>Submit</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
+            </ModalFooter>
+          </Modal>:null
+        }
+        {
+          this.state.isScooterModalModal?
+          <Modal className='modal-lg modal-info' isOpen={this.state.isScooterModalModal} toggle={this.toggleScooterModal}>
+            <ModalHeader toggle={this.toggleScooterModal}>Afficher l&#39;ensemble des Contrats</ModalHeader>
+            <ModalBody>
+              <div className="col-12">
+                <div className="card">
+                  <div className="card-block p-3 clearfix">
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-warning">Maintenance</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Revision</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-success">15.4 V</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Batterie</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-info">100 KM</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">parcours</div>
+                    </div>
+                    <div className="float-right mx-3 mb-0 mt-2">
+                      <strong className="text-info">Conducteur 1</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Conducteur</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-success">Oui</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Actif</div>
+                    </div>
+                    <i className="fa fa-motorcycle bg-primary p-3 font-2xl mr-3 float-left"></i>
+                    <div className="h5 text-info mb-0 mt-2">Scooter 1</div>
+                    <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="card">
+                  <div className="card-block p-3 clearfix">
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-info">2017-08-02</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Revision</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-warning">10.4 V</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Batterie</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-info">100 KM</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">parcours</div>
+                    </div>
+                    <div className="float-right mx-3 mb-0 mt-2">
+                      <strong className="text-info">Conducteur 1</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Conducteur</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-danger">Non</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Actif</div>
+                    </div>
+                    <i className="fa fa-motorcycle bg-primary p-3 font-2xl mr-3 float-left"></i>
+                    <div className="h5 text-info mb-0 mt-2">Scooter 2</div>
+                    <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-12">
+                <div className="card">
+                  <div className="card-block p-3 clearfix">
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-info">2017-08-02</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Revision</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-danger">5.4 V</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Batterie</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-info">100 KM</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">parcours</div>
+                    </div>
+                    <div className="float-right mx-3 mb-0 mt-2">
+                      <strong className="text-info">Conducteur 1</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Conducteur</div>
+                    </div>
+                    <div className="float-right mx-3  mb-0 mt-2">
+                      <strong className="text-success">Oui</strong>
+                      <div className="text-muted text-uppercase font-weight-bold font-xs">Actif</div>
+                    </div>
+                    <i className="fa fa-motorcycle bg-primary p-3 font-2xl mr-3 float-left"></i>
+                    <div className="h5 text-info mb-0 mt-2">Scooter 3</div>
+                    <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
+
+                  </div>
+                </div>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <button type="button" className="btn btn-sm btn-primary" onClick={this.toggleScooterModal}>Close</button>
             </ModalFooter>
           </Modal>:null
         }

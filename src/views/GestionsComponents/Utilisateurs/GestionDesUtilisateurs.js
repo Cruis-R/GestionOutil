@@ -17,16 +17,24 @@ const profil_data=[{
   "id_profil" : 1,
   "lib_profil": "Administrateur"
 }]
+const urlUtilisateurs = 'http://localhost:8081/utilisateurs';
+const urlProfils = 'http://localhost:8081/profils';
 export default class GestionDesUtilisateurs extends Component {
   constructor(props) {
     super(props);
     this.state = {
       activeTab: '1',
+      userData : [],
+      profilData : [],
       isInsertUtilisateurModal : false,
       isInsertProfilModal : false,
       isModifierUtilisateurModal : false,
+      isModifierUtilisateurSuccess : true,
+      isSupprimerProfilModal : false,
+      isSupprimerProfilSuccess : true,
       utilisateurConcerne : null,
       isModifierProfilModal : false,
+      isModifierProfilSuccess : true,
       profilConcerne : null
     }
     this.toggle = this.toggle.bind(this);
@@ -34,10 +42,143 @@ export default class GestionDesUtilisateurs extends Component {
     this.toggleInsertProfilModal = this.toggleInsertProfilModal.bind(this);
     this.toggleModifierUtilisateurModal = this.toggleModifierUtilisateurModal.bind(this);
     this.toggleModifierProfilModal = this.toggleModifierProfilModal.bind(this);
+    this.toggleSupprimerProfilModal = this.toggleSupprimerProfilModal.bind(this);
+    this.modifyProfilData = this.modifyProfilData.bind(this);
+    this.addProfilData= this.addProfilData.bind(this);
+    this.deleteProfilData = this.deleteProfilData.bind(this);
     this.utilisateursGestionFormatter = this.utilisateursGestionFormatter.bind(this);
     this.profilGestionFormatter = this.profilGestionFormatter.bind(this);
+    this.profilsInsertButton = this.profilsInsertButton.bind(this);
   }
-
+  componentDidMount(){
+    this.getData();
+  }
+  getData(){
+    fetch(urlUtilisateurs)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        userData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch(urlProfils)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        profilData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  //modifyProfilData type 1 =>change profil; type 2=> add new profil; type 3=> delete old profil
+  modifyProfilData(){
+    const queryMethod = "PUT";
+    let data = {};
+    data["id_profil"]= document.getElementById("id_profil").value;
+    data["lib_profil"]= document.getElementById("lib_profil").value;
+    fetch(urlProfils,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        fetch(urlProfils)
+        .then((response) => response.json())
+        .then((responseJson)=>{
+          this.setState({
+            profilData : responseJson,
+            isModifierProfilModal : !this.state.isModifierProfilModal
+          })
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  addProfilData(){
+    const queryMethod = "POST";
+    let data = {};
+    data["id_profil"]= document.getElementById("id_profil").value;
+    data["lib_profil"]= document.getElementById("lib_profil").value;
+    fetch(urlProfils,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status===400){
+          console.log("error");
+        }else {
+          fetch(urlProfils)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              profilData : responseJson,
+              isInsertProfilModal : !this.state.isInsertProfilModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  deleteProfilData(){
+    const queryMethod = "DELETE";
+    let data = {};
+    data["id_profil"]= document.getElementById("id_profil").value;
+    fetch(urlProfils,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status===400){
+          console.log("error");
+          this.setState({
+            isSupprimerProfilModalSuccess : false
+          })
+        }else {
+          fetch(urlProfils)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              profilData : responseJson,
+              isSupprimerProfilModal : !this.state.isSupprimerProfilModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -57,6 +198,12 @@ export default class GestionDesUtilisateurs extends Component {
       profilConcerne : data
     });
   }
+  toggleSupprimerProfilModal(data){
+    this.setState({
+      isSupprimerProfilModal : !this.state.isSupprimerProfilModal,
+      profilConcerne : data
+    });
+  }
   toggleInsertUtilisateurModal(){
     this.setState({
       isInsertUtilisateurModal : !this.state.isInsertUtilisateurModal
@@ -70,7 +217,7 @@ export default class GestionDesUtilisateurs extends Component {
   utilisateursGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierUtilisateurModal(row)}>Afflicher/Modifier</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierUtilisateurModal(row)}>Afficher/Modifier</button>
         <button type="button" className="btn btn-warning btn-sm col-sm-4">Désactiver</button>
         <button type="button" className="btn btn-danger btn-sm col-sm-4">Supprimer</button>
       </div>
@@ -80,7 +227,7 @@ export default class GestionDesUtilisateurs extends Component {
     return (
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-6" onClick={()=>this.toggleModifierProfilModal(row)}>Modifier</button>
-        <button type="button" className="btn btn-danger btn-sm col-sm-6">Supprimer</button>
+        <button type="button" className="btn btn-danger btn-sm col-sm-6" onClick={()=>this.toggleSupprimerProfilModal(row)}>Supprimer</button>
       </div>
     );
   }
@@ -95,13 +242,13 @@ export default class GestionDesUtilisateurs extends Component {
               <div className="form-group">
                 <div className="input-group">
                   <span className="input-group-addon"><i className="fa fa-user"></i></span>
-                  <input type="text" id="username" name="username" className="form-control" placeholder="Username"/>
+                  <input ref = "username" type="text" id="username" name="username" className="form-control" placeholder="Username"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
                   <span className="input-group-addon"><i className="fa fa-tag"></i></span>
-                  <input type="text" id="nom" name="nom" className="form-control" placeholder="Nom"/>
+                  <input ref = "nom" type="text" id="nom" name="nom" className="form-control" placeholder="Nom"/>
                 </div>
               </div>
               <div className="form-group">
@@ -164,22 +311,22 @@ export default class GestionDesUtilisateurs extends Component {
           <ModalHeader toggle={this.toggleInsertProfilModal}>Ajouter un Nouveau Profil</ModalHeader>
           <ModalBody>
             <div>
-              <div className="form-group">
-                <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-user"></i></span>
+              <div className="form-group bg-info">
+                <div className="input-group bg-info">
+                  <span className="input-group-addon bg-info"><i className="fa fa-user"></i></span>
                   <input type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil"/>
                 </div>
               </div>
-              <div className="form-group">
-                <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-tag"></i></span>
+              <div className="form-group bg-info">
+                <div className="input-group bg-info">
+                  <span className="input-group-addon bg-info"><i className="fa fa-tag"></i></span>
                   <input type="text" id="lib_profil" name="lib_profil" className="form-control" placeholder="Nom de Profil"/>
                 </div>
               </div>
             </div>
           </ModalBody>
           <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertProfilModal}>Submit</button>
+            <button type="button" className="btn btn-sm btn-success" onClick={()=>this.addProfilData()}>Submit</button>
             <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertProfilModal}>Cancel</button>
           </ModalFooter>
         </Modal>
@@ -202,13 +349,12 @@ export default class GestionDesUtilisateurs extends Component {
     );
   }
   render(){
-    let cur = this;
     const optionsUtilisateurs = {
-      insertBtn: cur.utilisateursInsertButton,
+      insertBtn: this.utilisateursInsertButton,
       toolBar: this.createCustomToolBar
     }
     const optionsProfils = {
-      insertBtn: cur.profilsInsertButton
+      insertBtn: this.profilsInsertButton
     }
     return(
       <div className="animated fadeIn">
@@ -239,8 +385,8 @@ export default class GestionDesUtilisateurs extends Component {
                   <div className="card-block">
                     <BootstrapTable
                       options = {optionsUtilisateurs}
-                      data={ data }
-                      headerStyle = { { "background-color" : "#63c2de" } }
+                      data={ this.state.userData }
+                      headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow>
                       <TableHeaderColumn
                         dataField="id_user"
@@ -280,8 +426,8 @@ export default class GestionDesUtilisateurs extends Component {
                 <div className="card-block">
                   <BootstrapTable
                     options = {optionsProfils}
-                    data = { profil_data }
-                    headerStyle = { { "background-color" : "#63c2de" } }
+                    data = { this.state.profilData }
+                    headerStyle = { { "backgroundColor" : "#63c2de" } }
                     insertRow>
                     <TableHeaderColumn
                       dataField="id_profil"
@@ -385,25 +531,52 @@ export default class GestionDesUtilisateurs extends Component {
             <ModalHeader toggle={this.toggleModifierProfilModal}>Modifier un Profil</ModalHeader>
             <ModalBody>
               <div>
-                <div className="form-group">
+                <div className="form-group bg-info">
                   <div className="input-group">
-                    <span className="input-group-addon col-1"><i className="fa fa-user"></i></span>
-                    <span className="input-group-addon col-3">Profil ID</span>
-                    <input type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil" defaultValue={this.state.profilConcerne["id_profil"]}/>
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-user"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Profil ID</span>
+                    <input disabled type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil" defaultValue={this.state.profilConcerne["id_profil"]}/>
                   </div>
-                </div>
-                <div className="form-group">
                   <div className="input-group">
-                    <span className="input-group-addon col-1"><i className="fa fa-tag"></i></span>
-                    <span className="input-group-addon col-3">Nom de Profil</span>
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-tag"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Nom de Profil</span>
                     <input type="text" id="lib_profil" name="lib_profil" className="form-control" placeholder="Nom de Profil" defaultValue={this.state.profilConcerne["lib_profil"]}/>
                   </div>
                 </div>
               </div>
             </ModalBody>
             <ModalFooter>
-              <button type="button" className="btn btn-sm btn-success" onClick={this.toggleModifierProfilModal}>Submit</button>
+              <button type="button" className="btn btn-sm btn-success" onClick={()=>{this.modifyProfilData();}}>Submit</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierProfilModal}>Cancel</button>
+            </ModalFooter>
+          </Modal>:null
+        }
+        {
+          this.state.isSupprimerProfilModal?
+          <Modal isOpen={this.state.isSupprimerProfilModal} toggle={this.toggleSupprimerProfilModal}>
+            <ModalHeader toggle={this.toggleModifierProfilModal}>Modifier un Profil</ModalHeader>
+            <ModalBody>
+              <div>
+                <div className="form-group col-sm-12">
+                  <label className="h3">Vous être sûre de supprimer le profil dessous?</label>
+                </div>
+                <div className="form-group">
+                  <div className="input-group bg-info">
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-user"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Profil ID</span>
+                    <input disabled type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil" defaultValue={this.state.profilConcerne["id_profil"]}/>
+                  </div>
+                  <div className="input-group bg-info">
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-tag"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Nom de Profil</span>
+                    <input disabled type="text" id="lib_profil" name="lib_profil" className="form-control" placeholder="Nom de Profil" defaultValue={this.state.profilConcerne["lib_profil"]}/>
+                  </div>
+                </div>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <button type="button" className="btn btn-sm btn-danger" onClick={()=>{this.deleteProfilData();}}>Confirmer</button>
+              <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleSupprimerProfilModal}>Cancel</button>
             </ModalFooter>
           </Modal>:null
         }

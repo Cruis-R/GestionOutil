@@ -458,7 +458,7 @@ export default class GestionDesFlottes extends Component {
                     </div>
                     <i className="fa fa-laptop bg-primary p-3 font-2xl mr-3 float-left"></i>
                     <div className="h5 text-info mb-0 mt-2">Contrat 1</div>
-                    <div className="text-muted text-uppercase font-weight-bold font-xs">Address</div>
+                    <div className="text-muted text-uppercase font-weight-bold font-xs">Contrat</div>
                   </div>
                 </div>
               </div>
@@ -470,7 +470,7 @@ export default class GestionDesFlottes extends Component {
                     </div>
                     <i className="fa fa-laptop bg-primary p-3 font-2xl mr-3 float-left"></i>
                     <div className="h5 text-info mb-0 mt-2">Contrat 2</div>
-                    <div className="text-muted text-uppercase font-weight-bold font-xs">Address</div>
+                    <div className="text-muted text-uppercase font-weight-bold font-xs">Contrat</div>
                   </div>
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default class GestionDesFlottes extends Component {
                     </div>
                     <i className="fa fa-laptop bg-primary p-3 font-2xl mr-3 float-left"></i>
                     <div className="h5 text-info mb-0 mt-2">Contrat 3</div>
-                    <div className="text-muted text-uppercase font-weight-bold font-xs">Address</div>
+                    <div className="text-muted text-uppercase font-weight-bold font-xs">Contrat</div>
                   </div>
                 </div>
               </div>

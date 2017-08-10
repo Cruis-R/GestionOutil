@@ -19,7 +19,8 @@
     "react-dom": "15.5.4",
     "react-router-dom": "4.1.1",
     "reactstrap": "4.6.2",
-    "react-bootstrap-table": "3.5.1"
+    "react-bootstrap-table": "3.5.1",
+    "mysql2": "1.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
