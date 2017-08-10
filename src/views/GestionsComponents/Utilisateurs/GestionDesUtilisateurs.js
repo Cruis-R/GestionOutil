@@ -27,14 +27,18 @@ export default class GestionDesUtilisateurs extends Component {
       userData : [],
       profilData : [],
       isInsertUtilisateurModal : false,
+      isInsertUtilisateurSucess : true,
       isInsertProfilModal : false,
+      isInsertProfilSucess : true,
       isModifierUtilisateurModal : false,
       isModifierUtilisateurSuccess : true,
       isSupprimerProfilModal : false,
       isSupprimerProfilSuccess : true,
-      utilisateurConcerne : null,
+      isSupprimerUtilisateurModal : false,
+      isSupprimerUtilisateurSuccess : true,
       isModifierProfilModal : false,
       isModifierProfilSuccess : true,
+      utilisateurConcerne : null,
       profilConcerne : null
     }
     this.toggle = this.toggle.bind(this);
@@ -43,9 +47,11 @@ export default class GestionDesUtilisateurs extends Component {
     this.toggleModifierUtilisateurModal = this.toggleModifierUtilisateurModal.bind(this);
     this.toggleModifierProfilModal = this.toggleModifierProfilModal.bind(this);
     this.toggleSupprimerProfilModal = this.toggleSupprimerProfilModal.bind(this);
+    this.toggleSupprimerUtilisateurModal = this.toggleSupprimerUtilisateurModal.bind(this);
     this.modifyProfilData = this.modifyProfilData.bind(this);
     this.addProfilData= this.addProfilData.bind(this);
     this.deleteProfilData = this.deleteProfilData.bind(this);
+    this.deleteUtilisateurData = this.deleteUtilisateurData.bind(this);
     this.utilisateursGestionFormatter = this.utilisateursGestionFormatter.bind(this);
     this.profilGestionFormatter = this.profilGestionFormatter.bind(this);
     this.profilsInsertButton = this.profilsInsertButton.bind(this);
@@ -90,17 +96,24 @@ export default class GestionDesUtilisateurs extends Component {
     })
     .then(
       (response)=>{
-        fetch(urlProfils)
-        .then((response) => response.json())
-        .then((responseJson)=>{
+        if(response.status===400){
+          console.log("error");
           this.setState({
-            profilData : responseJson,
-            isModifierProfilModal : !this.state.isModifierProfilModal
+            isModifierProfilSuccess : false
           })
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+        }else{
+          fetch(urlProfils)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              profilData : responseJson,
+              isModifierProfilModal : !this.state.isModifierProfilModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
       }
     )
     .catch((error) => {
@@ -123,6 +136,9 @@ export default class GestionDesUtilisateurs extends Component {
       (response)=>{
         if(response.status===400){
           console.log("error");
+          this.setState({
+            isInsertProfilSucess : false
+          })
         }else {
           fetch(urlProfils)
           .then((response) => response.json())
@@ -158,7 +174,7 @@ export default class GestionDesUtilisateurs extends Component {
         if(response.status===400){
           console.log("error");
           this.setState({
-            isSupprimerProfilModalSuccess : false
+            isSupprimerProfilSuccess : false
           })
         }else {
           fetch(urlProfils)
@@ -167,6 +183,43 @@ export default class GestionDesUtilisateurs extends Component {
             this.setState({
               profilData : responseJson,
               isSupprimerProfilModal : !this.state.isSupprimerProfilModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  deleteUtilisateurData(){
+    const queryMethod = "DELETE";
+    let data = {};
+    data["id_user"]= this.state.utilisateurConcerne["id_user"];
+    fetch(urlUtilisateurs,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isSupprimerUtilisateurSuccess : false
+          })
+        }else {
+          fetch(urlUtilisateurs)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              userData : responseJson,
+              isSupprimerUtilisateurSuccess : !this.state.isSupprimerProfilModal
             })
           })
           .catch((error) => {
@@ -189,29 +242,41 @@ export default class GestionDesUtilisateurs extends Component {
   toggleModifierUtilisateurModal(data){
     this.setState({
       isModifierUtilisateurModal : !this.state.isModifierUtilisateurModal,
+      isModifierUtilisateurSuccess : true,
       utilisateurConcerne : data
     });
   }
   toggleModifierProfilModal(data){
     this.setState({
       isModifierProfilModal : !this.state.isModifierProfilModal,
+      isModifierProfilSuccess : true,
       profilConcerne : data
     });
   }
   toggleSupprimerProfilModal(data){
     this.setState({
       isSupprimerProfilModal : !this.state.isSupprimerProfilModal,
+      isSupprimerProfilSuccess : true,
       profilConcerne : data
+    });
+  }
+  toggleSupprimerUtilisateurModal(data){
+    this.setState({
+      isSupprimerUtilisateurModal : !this.state.isSupprimerUtilisateurModal,
+      isSupprimerUtilisateurSuccess : true,
+      utilisateurConcerne : data
     });
   }
   toggleInsertUtilisateurModal(){
     this.setState({
-      isInsertUtilisateurModal : !this.state.isInsertUtilisateurModal
+      isInsertUtilisateurModal : !this.state.isInsertUtilisateurModal,
+      isInsertUtilisateurSucess : true
     });
   }
   toggleInsertProfilModal(){
     this.setState({
-      isInsertProfilModal : !this.state.isInsertProfilModal
+      isInsertProfilModal : !this.state.isInsertProfilModal,
+      isInsertProfilSucess : true
     });
   }
   utilisateursGestionFormatter(cell,row){
@@ -219,7 +284,7 @@ export default class GestionDesUtilisateurs extends Component {
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierUtilisateurModal(row)}>Afficher/Modifier</button>
         <button type="button" className="btn btn-warning btn-sm col-sm-4">Désactiver</button>
-        <button type="button" className="btn btn-danger btn-sm col-sm-4">Supprimer</button>
+        <button type="button" className="btn btn-danger btn-sm col-sm-4" onClick={()=>this.toggleSupprimerUtilisateurModal(row)}>Supprimer</button>
       </div>
     );
   }
@@ -242,13 +307,13 @@ export default class GestionDesUtilisateurs extends Component {
               <div className="form-group">
                 <div className="input-group">
                   <span className="input-group-addon"><i className="fa fa-user"></i></span>
-                  <input ref = "username" type="text" id="username" name="username" className="form-control" placeholder="Username"/>
+                  <input type="text" id="username" name="username" className="form-control" placeholder="Username"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
                   <span className="input-group-addon"><i className="fa fa-tag"></i></span>
-                  <input ref = "nom" type="text" id="nom" name="nom" className="form-control" placeholder="Nom"/>
+                  <input type="text" id="nom" name="nom" className="form-control" placeholder="Nom"/>
                 </div>
               </div>
               <div className="form-group">
@@ -294,6 +359,7 @@ export default class GestionDesUtilisateurs extends Component {
                 </div>
               </div>
             </div>
+            {!this.state.isInsertUtilisateurSucess?<span className="help-block text-danger">Error </span>:null}
           </ModalBody>
           <ModalFooter>
             <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertUtilisateurModal}>Submit</button>
@@ -324,6 +390,7 @@ export default class GestionDesUtilisateurs extends Component {
                 </div>
               </div>
             </div>
+            {!this.state.isInsertProfilSucess?<span className="help-block text-danger">Deplicate ou Invalid ID/Nom </span>:null}
           </ModalBody>
           <ModalFooter>
             <button type="button" className="btn btn-sm btn-success" onClick={()=>this.addProfilData()}>Submit</button>
@@ -518,6 +585,7 @@ export default class GestionDesUtilisateurs extends Component {
                   </div>
                 </div>
               </div>
+              {!this.state.isModifierUtilisateurSuccess?<span className="help-block text-danger">Error </span>:null}
             </ModalBody>
             <ModalFooter>
               <button type="button" className="btn btn-sm btn-success" onClick={this.toggleModifierUtilisateurModal}>Submit</button>
@@ -537,6 +605,8 @@ export default class GestionDesUtilisateurs extends Component {
                     <span className="input-group-addon col-3 bg-info">Profil ID</span>
                     <input disabled type="text" id="id_profil" name="id_profil" className="form-control" placeholder="ID Profil" defaultValue={this.state.profilConcerne["id_profil"]}/>
                   </div>
+                </div>
+                <div className="form-group bg-info">
                   <div className="input-group">
                     <span className="input-group-addon col-1 bg-info"><i className="fa fa-tag"></i></span>
                     <span className="input-group-addon col-3 bg-info">Nom de Profil</span>
@@ -544,6 +614,7 @@ export default class GestionDesUtilisateurs extends Component {
                   </div>
                 </div>
               </div>
+              {!this.state.isModifierProfilSuccess?<span className="help-block text-danger">Error </span>:null}
             </ModalBody>
             <ModalFooter>
               <button type="button" className="btn btn-sm btn-success" onClick={()=>{this.modifyProfilData();}}>Submit</button>
@@ -553,7 +624,7 @@ export default class GestionDesUtilisateurs extends Component {
         }
         {
           this.state.isSupprimerProfilModal?
-          <Modal isOpen={this.state.isSupprimerProfilModal} toggle={this.toggleSupprimerProfilModal}>
+          <Modal className="modal-danger modal-lg" isOpen={this.state.isSupprimerProfilModal} toggle={this.toggleSupprimerProfilModal}>
             <ModalHeader toggle={this.toggleModifierProfilModal}>Modifier un Profil</ModalHeader>
             <ModalBody>
               <div>
@@ -573,10 +644,50 @@ export default class GestionDesUtilisateurs extends Component {
                   </div>
                 </div>
               </div>
+              {!this.state.isSupprimerProfilSuccess?<span className="help-block text-danger">Error </span>:null}
             </ModalBody>
             <ModalFooter>
               <button type="button" className="btn btn-sm btn-danger" onClick={()=>{this.deleteProfilData();}}>Confirmer</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleSupprimerProfilModal}>Cancel</button>
+            </ModalFooter>
+          </Modal>:null
+        }
+        {
+          this.state.isSupprimerUtilisateurModal?
+          <Modal className="modal-danger modal-lg" isOpen={this.state.isSupprimerUtilisateurModal} toggle={this.toggleSupprimerUtilisateurModal}>
+            <ModalHeader toggle={this.toggleSupprimerUtilisateurModal}>Modifier un Profil</ModalHeader>
+            <ModalBody>
+              <div>
+                <div className="form-group col-sm-12">
+                  <label className="h3">Vous être sûre de supprimer le utilisateur dessous?</label>
+                </div>
+                <div className="form-group bg-info">
+                  <div className="input-group bg-info">
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-user"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Username</span>
+                    <input disabled type="text" id="username" name="username" className="form-control" placeholder="Username" defaultValue={this.state.utilisateurConcerne["username"]}/>
+                  </div>
+                </div>
+                <div className="form-group bg-info">
+                  <div className="input-group bg-info">
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-tag"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Nom</span>
+                    <input disabled type="text" id="nom" name="nom" className="form-control" placeholder="Nom" defaultValue={this.state.utilisateurConcerne["nom"]}/>
+                  </div>
+                </div>
+                <div className="form-group bg-info">
+                  <div className="input-group bg-info">
+                    <span className="input-group-addon col-1 bg-info"><i className="fa fa-tags"></i></span>
+                    <span className="input-group-addon col-3 bg-info">Prenom</span>
+                    <input disabled type="text" id="prenom" name="prenom" className="form-control" placeholder="Prenom" defaultValue={this.state.utilisateurConcerne["prenom"]}/>
+                  </div>
+                </div>
+              </div>
+              {!this.state.isSupprimerUtilisateurSuccess?<span className="help-block text-danger">Error </span>:null}
+            </ModalBody>
+            <ModalFooter>
+              <button type="button" className="btn btn-sm btn-danger" onClick={()=>{this.deleteUtilisateurData();}}>Confirmer</button>
+              <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleSupprimerUtilisateurModal}>Cancel</button>
             </ModalFooter>
           </Modal>:null
         }
