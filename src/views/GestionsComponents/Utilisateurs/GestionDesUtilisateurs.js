@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
+import urls from '../configs/serverConfigurations'
 const data = [{
   "id_user":"1",
   "username":"CruisR",
@@ -17,8 +18,8 @@ const profil_data=[{
   "id_profil" : 1,
   "lib_profil": "Administrateur"
 }]
-const urlUtilisateurs = 'http://localhost:8081/utilisateurs';
-const urlProfils = 'http://localhost:8081/profils';
+const urlUtilisateurs = urls.utilisateurs;
+const urlProfils = urls.profils;
 export default class GestionDesUtilisateurs extends Component {
   constructor(props) {
     super(props);
@@ -28,6 +29,7 @@ export default class GestionDesUtilisateurs extends Component {
       profilData : [],
       isInsertUtilisateurModal : false,
       isInsertUtilisateurSucess : true,
+      isPasswordMatch : true,
       isInsertProfilModal : false,
       isInsertProfilSucess : true,
       isModifierUtilisateurModal : false,
@@ -49,7 +51,9 @@ export default class GestionDesUtilisateurs extends Component {
     this.toggleSupprimerProfilModal = this.toggleSupprimerProfilModal.bind(this);
     this.toggleSupprimerUtilisateurModal = this.toggleSupprimerUtilisateurModal.bind(this);
     this.modifyProfilData = this.modifyProfilData.bind(this);
+    this.modifyUtilisateurData = this.modifyUtilisateurData.bind(this);
     this.addProfilData= this.addProfilData.bind(this);
+    this.addUtilisateurData = this.addUtilisateurData.bind(this);
     this.deleteProfilData = this.deleteProfilData.bind(this);
     this.deleteUtilisateurData = this.deleteUtilisateurData.bind(this);
     this.utilisateursGestionFormatter = this.utilisateursGestionFormatter.bind(this);
@@ -85,7 +89,7 @@ export default class GestionDesUtilisateurs extends Component {
   modifyProfilData(){
     const queryMethod = "PUT";
     let data = {};
-    data["id_profil"]= document.getElementById("id_profil").value;
+    data["id_profil"]= this.state.profilConcerne['id_profil'];
     data["lib_profil"]= document.getElementById("lib_profil").value;
     fetch(urlProfils,{
       method: queryMethod,
@@ -96,7 +100,7 @@ export default class GestionDesUtilisateurs extends Component {
     })
     .then(
       (response)=>{
-        if(response.status===400){
+        if(response.status!==200){
           console.log("error");
           this.setState({
             isModifierProfilSuccess : false
@@ -108,6 +112,51 @@ export default class GestionDesUtilisateurs extends Component {
             this.setState({
               profilData : responseJson,
               isModifierProfilModal : !this.state.isModifierProfilModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  modifyUtilisateurData(){
+    const queryMethod = "PUT";
+    let data = {};
+    data["id_user"]= this.state.utilisateurConcerne['id_user'];
+    data["username"]= document.getElementById("username").value;
+    data["nom"]= document.getElementById("nom").value;
+    data["prenom"]= document.getElementById("prenom").value;
+    data["motdepasse"]= document.getElementById("motdepasse").value;
+    data["profil"]= document.getElementById("profil").value;
+    data["societe"]= document.getElementById("societe").value;
+    data["email"]= document.getElementById("email").value;
+    data["tel"]= document.getElementById("tel").value;
+    fetch(urlUtilisateurs,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isModifierUtilisateurSuccess : false
+          })
+        }else{
+          fetch(urlUtilisateurs)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              userData : responseJson,
+              isModifierUtilisateurModal : !this.state.isModifierUtilisateurModal
             })
           })
           .catch((error) => {
@@ -134,7 +183,7 @@ export default class GestionDesUtilisateurs extends Component {
     })
     .then(
       (response)=>{
-        if(response.status===400){
+        if(response.status!==200){
           console.log("error");
           this.setState({
             isInsertProfilSucess : false
@@ -161,7 +210,7 @@ export default class GestionDesUtilisateurs extends Component {
   deleteProfilData(){
     const queryMethod = "DELETE";
     let data = {};
-    data["id_profil"]= document.getElementById("id_profil").value;
+    data["id_profil"]= this.state.profilConcerne['id_profil'];
     fetch(urlProfils,{
       method: queryMethod,
       body: JSON.stringify(data),
@@ -171,7 +220,7 @@ export default class GestionDesUtilisateurs extends Component {
     })
     .then(
       (response)=>{
-        if(response.status===400){
+        if(response.status!==200){
           console.log("error");
           this.setState({
             isSupprimerProfilSuccess : false
@@ -194,6 +243,62 @@ export default class GestionDesUtilisateurs extends Component {
     .catch((error) => {
       console.error(error);
     });
+  }
+  addUtilisateurData(){
+    /*username nom prenom motdepasse confirmermotdepasse profil societe email tel*/
+    const queryMethod = "POST";
+    let data = {};
+    data["username"]= document.getElementById("username").value;
+    data["nom"]= document.getElementById("nom").value;
+    data["prenom"]= document.getElementById("prenom").value;
+    data["motdepasse"]= document.getElementById("motdepasse").value;
+    data["confirmermotdepasse"]= document.getElementById("confirmermotdepasse").value;
+    data["profil"]= document.getElementById("profil").value;
+    data["societe"]= document.getElementById("societe").value;
+    data["email"]= document.getElementById("email").value;
+    data["tel"]= document.getElementById("tel").value;
+    if(data["motdepasse"]===data["confirmermotdepasse"]){
+      this.setState({
+        isPasswordMatch : true
+      })
+      fetch(urlUtilisateurs,{
+        method: queryMethod,
+        body: JSON.stringify(data),
+        headers: new Headers({
+      		'Content-Type': 'application/json'
+      	})
+      })
+      .then(
+        (response)=>{
+          if(response.status!==200){
+            console.log("error");
+            this.setState({
+              isInsertUtilisateurSucess : false
+            })
+          }else {
+            fetch(urlUtilisateurs)
+            .then((response) => response.json())
+            .then((responseJson)=>{
+              this.setState({
+                userData : responseJson,
+                isInsertUtilisateurModal : !this.state.isInsertUtilisateurModal
+              })
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+          }
+        }
+      )
+      .catch((error) => {
+        console.error(error);
+      });
+    }else {
+      this.setState({
+        isPasswordMatch : false,
+        isInsertUtilisateurSucess : false
+      })
+    }
   }
   deleteUtilisateurData(){
     const queryMethod = "DELETE";
@@ -219,7 +324,7 @@ export default class GestionDesUtilisateurs extends Component {
           .then((responseJson)=>{
             this.setState({
               userData : responseJson,
-              isSupprimerUtilisateurSuccess : !this.state.isSupprimerProfilModal
+              isSupprimerUtilisateurModal : !this.state.isSupprimerUtilisateurModal
             })
           })
           .catch((error) => {
@@ -270,7 +375,8 @@ export default class GestionDesUtilisateurs extends Component {
   toggleInsertUtilisateurModal(){
     this.setState({
       isInsertUtilisateurModal : !this.state.isInsertUtilisateurModal,
-      isInsertUtilisateurSucess : true
+      isInsertUtilisateurSucess : true,
+      isPasswordMatch : true
     });
   }
   toggleInsertProfilModal(){
@@ -323,13 +429,13 @@ export default class GestionDesUtilisateurs extends Component {
                 </div>
               </div>
               <div className="form-group">
-                <div className="input-group">
+                <div className= {classnames("input-group", { 'has-danger': !this.state.isPasswordMatch })}>
                   <span className="input-group-addon"><i className="fa fa-asterisk"></i></span>
                   <input type="password" id="motdepasse" name="motdepasse" className="form-control" placeholder="Mot de Passe"/>
                 </div>
               </div>
               <div className="form-group">
-                <div className="input-group">
+                <div className= {classnames("input-group", { 'has-danger': !this.state.isPasswordMatch })}>
                   <span className="input-group-addon"><i className="fa fa-gavel"></i></span>
                   <input type="password" id="confirmermotdepasse" name="confirmermotdepasse" className="form-control" placeholder="Confirmer Mot de Passe"/>
                 </div>
@@ -337,7 +443,13 @@ export default class GestionDesUtilisateurs extends Component {
               <div className="form-group">
                 <div className="input-group">
                   <span className="input-group-addon"><i className="fa fa-archive"></i></span>
-                  <input type="text" id="profil" name="profil" className="form-control" placeholder="Profil"/>
+                  <select className="form-control" id="profil" placeholder="Profil">
+                  {
+                    this.state.profilData.map((instance,index)=>{
+                      return <option value={instance['id_profil']}>{instance['lib_profil']}</option>
+                    })
+                  }
+                  </select>
                 </div>
               </div>
               <div className="form-group">
@@ -360,9 +472,10 @@ export default class GestionDesUtilisateurs extends Component {
               </div>
             </div>
             {!this.state.isInsertUtilisateurSucess?<span className="help-block text-danger">Error </span>:null}
+            {!this.state.isPasswordMatch?<span className="help-block text-danger">Mot de Pass Not Matched</span>:null}
           </ModalBody>
           <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertUtilisateurModal}>Submit</button>
+            <button type="button" className="btn btn-sm btn-success" onClick={()=>this.addUtilisateurData()}>Submit</button>
             <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertUtilisateurModal}>Cancel</button>
           </ModalFooter>
         </Modal>
@@ -588,7 +701,7 @@ export default class GestionDesUtilisateurs extends Component {
               {!this.state.isModifierUtilisateurSuccess?<span className="help-block text-danger">Error </span>:null}
             </ModalBody>
             <ModalFooter>
-              <button type="button" className="btn btn-sm btn-success" onClick={this.toggleModifierUtilisateurModal}>Submit</button>
+              <button type="button" className="btn btn-sm btn-success" onClick={this.modifyUtilisateurData}>Submit</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierUtilisateurModal}>Cancel</button>
             </ModalFooter>
           </Modal>:null
