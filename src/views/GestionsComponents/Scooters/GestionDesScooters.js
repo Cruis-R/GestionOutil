@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button, Progress } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
+import urls from '../configs/serverConfigurations'
 const data = [{
   "id_scooter" : 1,
   "num_cruisrent" : "00000001",
@@ -32,20 +33,27 @@ const statut = {
   3 : "Hors service",
   4 : "A récupérer"
 }
+const urlStatuts = urls.statuts;
+const urlScooters = urls.scooters;
 export default class GestionDesScooters extends Component {
   constructor(props) {
     super(props);
     this.state = {
       activeTab: '1',
       isInsertScooterModal : false,
+      isInsertScooterSucess : true,
       isAssocierContratModal : false,
+      isAssocierContratSucess : true,
       isAssocierBoitierModal : false,
+      isAssocierBoitierSucess : true,
       isInfoCompletModal : false,
       isScooterContratModal : false,
       isAttribuerScooter : false,
       contratModalType : 1,
       boitierModalType : 1,
-      scooterConcerne : {}
+      scooterConcerne : {},
+      scootersData : [],
+      statutsData : []
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertScooterModal = this.toggleInsertScooterModal.bind(this);
@@ -54,11 +62,174 @@ export default class GestionDesScooters extends Component {
     this.toggleInfoCompletModal = this.toggleInfoCompletModal.bind(this);
     this.toggleAttribuerScooter = this.toggleAttribuerScooter.bind(this);
     this.toggleScooterContratModal = this.toggleScooterContratModal.bind(this);
+    this.scooterStatutFormatter = this.scooterStatutFormatter.bind(this);
+    this.scootersInsertButton = this.scootersInsertButton.bind(this);
     this.scootersGestionFormatter = this.scootersGestionFormatter.bind(this);
     this.scootersBoitierFormatter = this.scootersBoitierFormatter.bind(this);
     this.scootersContratFormatter = this.scootersContratFormatter.bind(this);
+    this.addScooterData = this.addScooterData.bind(this);
+    this.associerBoiter = this.associerBoiter.bind(this);
+    this.associerContrat = this.associerContrat.bind(this);
   }
-
+  componentDidMount(){
+    this.getData();
+  }
+  getData(){
+    fetch(urlStatuts)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        statutsData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch(urlScooters)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        scootersData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  addScooterData(){
+    const queryMethod = "POST";
+    let data = {};
+    data["num_cruisrent"] = document.getElementById("num_cruisrent").value?document.getElementById("num_cruisrent").value:null;
+    data["marque"] = document.getElementById("marque").value;
+    data["modele"] = document.getElementById("modele").value;
+    data["immat"] = document.getElementById("immat").value;
+    data["date_immat"] = document.getElementById("date_immat").value?document.getElementById("date_immat").value:null;
+    data["type_usage"] = document.getElementById("type_usage").value;
+    data["composants"] = document.getElementById("composants").value;
+    data["num_chassis"] = document.getElementById("num_chassis").value?document.getElementById("num_chassis").value:null;
+    data["nb_kms"] = document.getElementById("nb_kms").value?document.getElementById("nb_kms").value:null;
+    data["controle_qualite"] = document.getElementById("controle_qualite").value;
+    data["num_contratassurance"] = document.getElementById("num_contratassurance").value;
+    data["assureur"] = document.getElementById("assureur").value;
+    data["debut_assurance"] = document.getElementById("debut_assurance").value?document.getElementById("debut_assurance").value:null;
+    data["duree_assurance"] = document.getElementById("duree_assurance").value;
+    data["statut"] = document.getElementById("statut").value?document.getElementById("statut").value:null;
+    fetch(urlScooters,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isInsertScooterSucess : false
+          })
+        }else {
+          fetch(urlScooters)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              scootersData : responseJson,
+              isInsertScooterModal : !this.state.isInsertScooterModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  associerBoiter(){
+    const queryMethod = "POST";
+    const url = urlScooters + '/boitier';
+    let data = {};
+    data['id_scooter'] = this.state.scooterConcerne['id_scooter'];
+    data['id_boitier'] = document.getElementById('id_boitier').value;
+    data['boitierModalType'] = this.state.boitierModalType;
+    fetch(url,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isAssocierBoitierSucess : false
+          })
+        }else {
+          fetch(urlScooters)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              scootersData : responseJson,
+              isAssocierBoitierModal : !this.state.isAssocierBoitierModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  associerContrat(){
+    const queryMethod = "POST";
+    const url = urlScooters + '/contrat';
+    let data = {};
+    data['id_scooter'] = this.state.scooterConcerne['id_scooter'];
+    data['id_contrat'] = document.getElementById('id_contrat').value;
+    data['contratModalType'] = this.state.contratModalType;
+    data['isAttribuerScooter'] = this.state.isAttribuerScooter;
+    data['id_scooter_new'] = this.state.isAttribuerScooter?document.getElementById('id_scooter_new').value:null;
+    data['statut'] = this.state.contratModalType===1?null:document.getElementById('statut').value;
+    fetch(url,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isAssocierContratSucess : false
+          })
+        }else {
+          fetch(urlScooters)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              scootersData : responseJson,
+              isAssocierContratModal : !this.state.isAssocierContratModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -76,7 +247,9 @@ export default class GestionDesScooters extends Component {
     this.setState({
       isAssocierContratModal : !this.state.isAssocierContratModal,
       scooterConcerne : data,
-      contratModalType : type
+      contratModalType : type,
+      isAssocierContratSucess : true,
+      isAttribuerScooter : false
     });
   }
   toggleAssocierBoitierModal(data,type){
@@ -84,6 +257,7 @@ export default class GestionDesScooters extends Component {
     this.setState({
       isAssocierBoitierModal : !this.state.isAssocierBoitierModal,
       scooterConcerne : data,
+      isAssocierBoitierSucess : true,
       boitierModalType : type
     });
   }
@@ -125,7 +299,11 @@ export default class GestionDesScooters extends Component {
   scooterStatutFormatter(cell,row){
     return (
       <div>
-        <button type="button" className={classnames("btn btn-sm col-sm-12",{ "btn-info" : cell==='1',"btn-success" : cell==='2',"btn-danger" : cell==='3', "btn-warning" : cell==='4'})}>{statut[cell]}</button>
+        <button type="button" className={classnames("btn btn-sm col-sm-12",{ "btn-info" : cell===1,"btn-success" : cell===2,"btn-danger" : cell===3, "btn-warning" : cell===4})}>
+        {this.state.statutsData.map((instance)=>{
+          if(instance['id_statut']===cell) return instance['lib_statut'];
+        })}
+        </button>
       </div>
     );
   }
@@ -196,10 +374,11 @@ export default class GestionDesScooters extends Component {
                 <div className="form-group col-sm-6">
                   <label htmlFor="statut">Statut</label>
                   <select className="form-control" id="statut" placeholder="Statut">
-                    <option value='1'>{statut['1']}</option>
-                    <option value='2'>{statut['2']}</option>
-                    <option value='3'>{statut['3']}</option>
-                    <option value='4'>{statut['4']}</option>
+                  {
+                    this.state.statutsData.map((instance,index)=>{
+                      return <option value={instance['id_statut']}>{instance['lib_statut']}</option>
+                    })
+                  }
                   </select>
                 </div>
               </div>
@@ -239,7 +418,7 @@ export default class GestionDesScooters extends Component {
             </div>
           </ModalBody>
           <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertScooterModal}>Submit</button>
+            <button type="button" className="btn btn-sm btn-success" onClick={this.addScooterData}>Submit</button>
             <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertScooterModal}>Cancel</button>
           </ModalFooter>
         </Modal>
@@ -294,7 +473,7 @@ export default class GestionDesScooters extends Component {
   render(){
     let cur = this;
     const optionsScooters = {
-      insertBtn: cur.scootersInsertButton,
+      insertBtn: this.scootersInsertButton,
       toolBar: this.createCustomToolBar,
       clearSearch: true,
       clearSearchBtn : this.createCustomClearButton
@@ -335,7 +514,7 @@ export default class GestionDesScooters extends Component {
                   <div className="card-block">
                     <BootstrapTable
                       options = {optionsScooters}
-                      data={ data }
+                      data={ this.state.scootersData }
                       headerStyle = { { "background-color" : "#63c2de" } }
                       insertRow
                       search>
@@ -411,9 +590,10 @@ export default class GestionDesScooters extends Component {
                     <input type="text" className="form-control" id="id_boitier" placeholder="Boitier ID" defaultValue = {this.state.boitierModalType===1?"":this.state.scooterConcerne["id_boitier"]} disabled={this.state.boitierModalType!==1}/>
                   </div>
                 </div>
+                {!this.state.isAssocierBoitierSucess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierBoitierModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.associerBoiter}>Submit</button>
                 <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierBoitierModal}>Cancel</button>
               </ModalFooter>
             </Modal>
@@ -439,10 +619,11 @@ export default class GestionDesScooters extends Component {
                       <div className="form-group col-sm-12">
                         <label htmlFor="statut">Statut</label>
                         <select className="form-control" id="statut" placeholder="Statut">
-                          <option value='1'>{statut['1']}</option>
-                          <option value='2'>{statut['2']}</option>
-                          <option value='3'>{statut['3']}</option>
-                          <option value='4'>{statut['4']}</option>
+                        {
+                          this.state.statutsData.map((instance,index)=>{
+                            return <option value={instance['id_statut']}>{instance['lib_statut']}</option>
+                          })
+                        }
                         </select>
                       </div>
                       <div className="form-group col-sm-12">
@@ -456,16 +637,17 @@ export default class GestionDesScooters extends Component {
                           this.state.isAttribuerScooter?
                           <div>
                             <label htmlFor="statut">Nouveau Scooter ID</label>
-                            <input type="text" className="form-control" id="id_scooter" placeholder="Nouveau Scooter ID"/>
+                            <input type="text" className="form-control" id="id_scooter_new" placeholder="Nouveau Scooter ID"/>
                           </div>:null
                         }
                       </div>
                     </div>:null
                   }
                 </div>
+                {!this.state.isAssocierContratSucess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierContratModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.associerContrat}>Submit</button>
                 <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
               </ModalFooter>
             </Modal>:null
@@ -496,7 +678,7 @@ export default class GestionDesScooters extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.scooterConcerne["date_immat"]}</div>
+                        <div>{this.state.scooterConcerne["date_immat"]?this.state.scooterConcerne["date_immat"].split('T')[0]:'2017-08-03'}</div>
                         <small className="text-muted">Date d&#39;immatriculation</small>
                       </div>
                     </div>
@@ -504,7 +686,7 @@ export default class GestionDesScooters extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.scooterConcerne["date_immat"]}</div>
+                        <div>{this.state.scooterConcerne["date_immat"]?this.state.scooterConcerne["date_immat"].split('T')[0]:'2017-08-03'}</div>
                         <small className="text-muted">Dates de révision</small>
                       </div>
                     </div>
@@ -516,7 +698,7 @@ export default class GestionDesScooters extends Component {
                       <div className="h1 text-muted text-right mb-2">
                         <i className="icon-speedometer"></i>
                       </div>
-                      <div className="h4 mb-0">{this.state.scooterConcerne["taux"]?this.state.scooterConcerne["taux"]:"555 E"}</div>
+                      <div className="h4 mb-0">{this.state.scooterConcerne["taux"]?this.state.scooterConcerne["taux"]:"20 E"}</div>
                       <small className="text-muted text-uppercase font-weight-bold">Taux</small>
                     </div>
                   </div>
@@ -525,7 +707,7 @@ export default class GestionDesScooters extends Component {
                       <div className="h1 text-muted text-right mb-2">
                         <i className="icon-speedometer"></i>
                       </div>
-                      <div className="h4 mb-0">{this.state.scooterConcerne["temp"]?this.state.scooterConcerne["temp"]:"500 h"}</div>
+                      <div className="h4 mb-0">{this.state.scooterConcerne["temp"]?this.state.scooterConcerne["temp_usage"]:"25 H"}</div>
                       <small className="text-muted text-uppercase font-weight-bold">Temp d&#39;usage</small>
                     </div>
                   </div>
@@ -534,7 +716,7 @@ export default class GestionDesScooters extends Component {
                       <div className="h1 text-muted text-right mb-2">
                         <i className="icon-speedometer"></i>
                       </div>
-                      <div className="h4 mb-0">100 KM</div>
+                      <div className="h4 mb-0">{this.state.scooterConcerne["km_total"]?this.state.scooterConcerne["km_total"]:"109.8"}</div>
                       <small className="text-muted text-uppercase font-weight-bold">Km Total</small>
                     </div>
                   </div>
@@ -553,7 +735,7 @@ export default class GestionDesScooters extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-laptop bg-info p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-info mb-0 mt-2">50.2 KM</div>
+                        <div className="h5 text-primary mb-0 mt-2">50.2 KM</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">Km Moyen par Mois</div>
                       </div>
                     </div>
@@ -562,7 +744,7 @@ export default class GestionDesScooters extends Component {
                     <div className="card">
                       <div className="card-block p-3 clearfix">
                         <i className="fa fa-moon-o bg-warning p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-warning mb-0 mt-2">20.3 KM</div>
+                        <div className="h5 text-primary mb-0 mt-2">20.3 KM</div>
                         <div className="text-muted text-uppercase font-weight-bold font-xs">Km en cour</div>
                       </div>
                     </div>
