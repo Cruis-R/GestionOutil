@@ -42,8 +42,10 @@ export default class GestionDesScooters extends Component {
       activeTab: '1',
       isInsertScooterModal : false,
       isInsertScooterSucess : true,
+      isModifierScooterModal : false,
+      isModifierScooterSuccess : true,
       isAssocierContratModal : false,
-      isAssocierContratSucess : true,
+      isAssocierContratSuccess : true,
       isAssocierBoitierModal : false,
       isAssocierBoitierSucess : true,
       isInfoCompletModal : false,
@@ -61,6 +63,7 @@ export default class GestionDesScooters extends Component {
     this.toggleAssocierBoitierModal = this.toggleAssocierBoitierModal.bind(this);
     this.toggleInfoCompletModal = this.toggleInfoCompletModal.bind(this);
     this.toggleAttribuerScooter = this.toggleAttribuerScooter.bind(this);
+    this.toggleModifierScooterModal = this.toggleModifierScooterModal.bind(this);
     this.toggleScooterContratModal = this.toggleScooterContratModal.bind(this);
     this.scooterStatutFormatter = this.scooterStatutFormatter.bind(this);
     this.scootersInsertButton = this.scootersInsertButton.bind(this);
@@ -70,6 +73,7 @@ export default class GestionDesScooters extends Component {
     this.addScooterData = this.addScooterData.bind(this);
     this.associerBoiter = this.associerBoiter.bind(this);
     this.associerContrat = this.associerContrat.bind(this);
+    this.modifierScooterData = this.modifierScooterData.bind(this);
   }
   componentDidMount(){
     this.getData();
@@ -147,8 +151,60 @@ export default class GestionDesScooters extends Component {
       console.error(error);
     });
   }
+  modifierScooterData(){
+    const queryMethod = "PUT";
+    let data = {};
+    data["id_scooter"] = this.state.scooterConcerne["id_scooter"];
+    data["num_cruisrent"] = document.getElementById("num_cruisrent").value?document.getElementById("num_cruisrent").value:null;
+    data["marque"] = document.getElementById("marque").value;
+    data["modele"] = document.getElementById("modele").value;
+    data["immat"] = document.getElementById("immat").value;
+    data["date_immat"] = document.getElementById("date_immat").value?document.getElementById("date_immat").value:null;
+    data["type_usage"] = document.getElementById("type_usage").value;
+    data["composants"] = document.getElementById("composants").value;
+    data["num_chassis"] = document.getElementById("num_chassis").value?document.getElementById("num_chassis").value:null;
+    data["nb_kms"] = document.getElementById("nb_kms").value?document.getElementById("nb_kms").value:null;
+    data["controle_qualite"] = document.getElementById("controle_qualite").value;
+    data["num_contratassurance"] = document.getElementById("num_contratassurance").value;
+    data["assureur"] = document.getElementById("assureur").value;
+    data["debut_assurance"] = document.getElementById("debut_assurance").value?document.getElementById("debut_assurance").value:null;
+    data["duree_assurance"] = document.getElementById("duree_assurance").value;
+    data["statut"] = document.getElementById("statut").value?document.getElementById("statut").value:null;
+    fetch(urlScooters,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isModifierScooterSuccess : false
+          })
+        }else {
+          fetch(urlScooters)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              scootersData : responseJson,
+              isModifierScooterModal : !this.state.isModifierScooterModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   associerBoiter(){
-    const queryMethod = "POST";
+    const queryMethod = "PUT";
     const url = urlScooters + '/boitier';
     let data = {};
     data['id_scooter'] = this.state.scooterConcerne['id_scooter'];
@@ -188,7 +244,7 @@ export default class GestionDesScooters extends Component {
     });
   }
   associerContrat(){
-    const queryMethod = "POST";
+    const queryMethod = "PUT";
     const url = urlScooters + '/contrat';
     let data = {};
     data['id_scooter'] = this.state.scooterConcerne['id_scooter'];
@@ -209,7 +265,7 @@ export default class GestionDesScooters extends Component {
         if(response.status!==200){
           console.log("error");
           this.setState({
-            isAssocierContratSucess : false
+            isAssocierContratSuccess : false
           })
         }else {
           fetch(urlScooters)
@@ -248,7 +304,7 @@ export default class GestionDesScooters extends Component {
       isAssocierContratModal : !this.state.isAssocierContratModal,
       scooterConcerne : data,
       contratModalType : type,
-      isAssocierContratSucess : true,
+      isAssocierContratSuccess : true,
       isAttribuerScooter : false
     });
   }
@@ -259,6 +315,14 @@ export default class GestionDesScooters extends Component {
       scooterConcerne : data,
       isAssocierBoitierSucess : true,
       boitierModalType : type
+    });
+  }
+  toggleModifierScooterModal(data){
+    console.log("modifier data",data);
+    this.setState({
+      isModifierScooterModal : !this.state.isModifierScooterModal,
+      scooterConcerne : data,
+      isModifierScooterSuccess : true
     });
   }
   toggleInfoCompletModal(data){
@@ -291,8 +355,9 @@ export default class GestionDesScooters extends Component {
   scootersGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-6" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher</button>{' '}
-        <button type="button" className="btn btn-info btn-sm col-sm-6" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierScooterModal(row)}>Modifier</button>
+        <button type="button" className="btn btn-primary btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher</button>
+        <button type="button" className="btn btn-info btn-sm col-sm-4" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
       </div>
     );
   }
@@ -300,9 +365,11 @@ export default class GestionDesScooters extends Component {
     return (
       <div>
         <button type="button" className={classnames("btn btn-sm col-sm-12",{ "btn-info" : cell===1,"btn-success" : cell===2,"btn-danger" : cell===3, "btn-warning" : cell===4})}>
-        {this.state.statutsData.map((instance)=>{
-          if(instance['id_statut']===cell) return instance['lib_statut'];
-        })}
+        {
+          this.state.statutsData.map((instance)=>{
+            if(instance['id_statut']===cell) return instance['lib_statut'];
+          })
+        }
         </button>
       </div>
     );
@@ -416,6 +483,7 @@ export default class GestionDesScooters extends Component {
                 </div>
               </div>
             </div>
+            {!this.state.isInsertScooterSuccess?<span className="help-block text-danger">Error </span>:null}
           </ModalBody>
           <ModalFooter>
             <button type="button" className="btn btn-sm btn-success" onClick={this.addScooterData}>Submit</button>
@@ -515,7 +583,7 @@ export default class GestionDesScooters extends Component {
                     <BootstrapTable
                       options = {optionsScooters}
                       data={ this.state.scootersData }
-                      headerStyle = { { "background-color" : "#63c2de" } }
+                      headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow
                       search>
 
@@ -644,7 +712,7 @@ export default class GestionDesScooters extends Component {
                     </div>:null
                   }
                 </div>
-                {!this.state.isAssocierContratSucess?<span className="help-block text-danger">Error </span>:null}
+                {!this.state.isAssocierContratSuccess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
                 <button type="button" className="btn btn-sm btn-success" onClick={this.associerContrat}>Submit</button>
@@ -795,6 +863,99 @@ export default class GestionDesScooters extends Component {
                 <button type="button" className="btn btn-sm btn-primary" onClick={this.toggleScooterContratModal}>Close</button>
               </ModalFooter>
             </Modal>:null
+          }
+          {
+            this.state.isModifierScooterModal?
+
+              <Modal className='modal-lg modal-info' isOpen={this.state.isModifierScooterModal} toggle={this.toggleModifierScooterModal}>
+                <ModalHeader toggle={this.toggleModifierScooterModal}>Ajouter un Nouveau Scooter</ModalHeader>
+                <ModalBody>
+                  <div>
+                    <div className="row">
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="num_cruisrent">Numéro CRUIS RENT</label>
+                        <input type="text" className="form-control" id="num_cruisrent" placeholder="Numéro CRUIS RENT" defaultValue = {this.state.scooterConcerne['num_cruisrent']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="immat">Numéro d&#39;immatriculation</label>
+                        <input type="text" className="form-control" id="immat" placeholder="Numéro d'immatriculation" defaultValue = {this.state.scooterConcerne['immat']}/>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="marque">Marque</label>
+                        <input type="text" className="form-control" id="marque" placeholder="Marque" defaultValue = {this.state.scooterConcerne['marque']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="modele">Modèle</label>
+                        <input type="text" className="form-control" id="modele" placeholder="Modèle" defaultValue = {this.state.scooterConcerne['marque']}/>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="date_immat">Date d&#39;immatriculation</label>
+                      <input type="date" className="form-control" id="date_immat" placeholder="Date d'immatriculation" defaultValue = {this.state.scooterConcerne['date_immat']}/>
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="composants">Détail des Composants consommables</label>
+                      <input type="text" className="form-control" id="composants" placeholder="Detail des composants" defaultValue = {this.state.scooterConcerne['composants']}/>
+                    </div>
+                    <div className="row">
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="type_usage">Type d&#39;usage</label>
+                        <input type="text" className="form-control" id="type_usage" placeholder="Type d'usage" defaultValue = {this.state.scooterConcerne['type_usage']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="statut">Statut</label>
+                        <select className="form-control" id="statut" placeholder="Statut" defaultValue = {this.state.scooterConcerne['statut']}>
+                        {
+                          this.state.statutsData.map((instance,index)=>{
+                            return <option value={instance['id_statut']}>{instance['lib_statut']}</option>
+                          })
+                        }
+                        </select>
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="num_chassis">Numéro de châssis</label>
+                        <input type="text" className="form-control" id="num_chassis" placeholder="Numéro de châssis" defaultValue = {this.state.scooterConcerne['num_chassis']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="nb_kms">Nombre de Kilomètres</label>
+                        <input type="text" className="form-control" id="nb_kms" placeholder="Nombre de Kilomètres" defaultValue = {this.state.scooterConcerne['nb_kms']}/>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="controle_qualite">Contrôle qualité</label>
+                      <input type="text" className="form-control" id="controle_qualite" placeholder="Contrôle qualité" defaultValue = {this.state.scooterConcerne['controle_qualite']}/>
+                    </div>
+                    <div className="row">
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="assureur">Assureur</label>
+                        <input type="text" className="form-control" id="assureur" placeholder="Assureur" defaultValue = {this.state.scooterConcerne['assureur']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="num_contratassurance">Numéro de contrat d&#39;assurance</label>
+                        <input type="text" className="form-control" id="num_contratassurance" placeholder="Numéro de contrat d'assurance" defaultValue = {this.state.scooterConcerne['num_contratassurance']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="debut_assurance">Date de début d&#39;assurance</label>
+                        <input type="date" className="form-control" id="debut_assurance" placeholder="Date de début d'assurance" defaultValue = {this.state.scooterConcerne['debut_assurance']}/>
+                      </div>
+                      <div className="form-group col-sm-6">
+                        <label htmlFor="duree_assurance">Durée de l&#39;assurance</label>
+                        <input type="text" className="form-control" id="duree_assurance" placeholder="Durée de l'assurance" defaultValue = {this.state.scooterConcerne['duree_assurance']}/>
+                      </div>
+                    </div>
+                  </div>
+                  {!this.state.isModifierScooterSuccess?<span className="help-block text-danger">Error </span>:null}
+                </ModalBody>
+                <ModalFooter>
+                  <button type="button" className="btn btn-sm btn-success" onClick={this.modifierScooterData}>Submit</button>
+                  <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierScooterModal}>Cancel</button>
+                </ModalFooter>
+                </Modal>:null
           }
         </div>
       </div>

@@ -207,7 +207,7 @@ export default class GestionDesFlottes extends Component {
                     <BootstrapTable
                       options = {optionsFlottes}
                       data={ data }
-                      headerStyle = { { "background-color" : "#63c2de" } }
+                      headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow>
                       <TableHeaderColumn
                         dataField="id_flotte"

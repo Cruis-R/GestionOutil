@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button, Progress } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
+import urls from '../configs/serverConfigurations'
 const data = [{
   "id_batterie" : 1,
   "num_cruisrent" : "34",
@@ -17,7 +18,7 @@ const data = [{
   "cellule" : 150,
   "nb_cycles" : 2000,
   "identifiant" : "0001",
-  "locataire" : "CruisR"
+  "client" : "CruisR"
 },{
   "id_batterie" : 1,
   "num_cruisrent" : "34",
@@ -52,28 +53,66 @@ const statut = {
   2 : "Assigner",
   3 : "A récupérer"
 }
+const urlBatteries = urls.batteries;
+const urlStatutsCles = urls.statutscles;
 export default class GestionDesBatteries extends Component {
   constructor(props) {
     super(props);
     this.state = {
       activeTab: '1',
       isInsertBatterieModal : false,
-      isAssocierLocataireModal : false,
+      isInsertBatterieSuccess : true,
+      isModifierBatterieModal : false,
+      isModifierBatterieSuccess : true,
+      isAssocierClientModal : false,
+      isAssocierClientSuccess : true,
       isInfoCompletModal : false,
       isChangerStatutModal : false,
-      locataireModalType : 1,
-      batterieConcerne : {}
+      isChangerStatutSuccess : true,
+      clientModalType : 1,
+      batterieConcerne : {},
+      batteriesData : [],
+      statutsClesData : []
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertBatterieModal = this.toggleInsertBatterieModal.bind(this);
-    this.toggleAssocierLocataireModal = this.toggleAssocierLocataireModal.bind(this);
+    this.toggleModifierBatterieModal = this.toggleModifierBatterieModal.bind(this);
+    this.toggleAssocierClientModal = this.toggleAssocierClientModal.bind(this);
     this.toggleInfoCompletModal = this.toggleInfoCompletModal.bind(this);
     this.toggleChangerStatutModal = this.toggleChangerStatutModal.bind(this);
     this.batteriesGestionFormatter = this.batteriesGestionFormatter.bind(this);
-    this.batteriesLocataireFormatter = this.batteriesLocataireFormatter.bind(this);
+    this.batteriesClientFormatter = this.batteriesClientFormatter.bind(this);
     this.batteriesStatutFormatter = this.batteriesStatutFormatter.bind(this);
+    this.addBatterieData = this.addBatterieData.bind(this);
+    this.associerClient = this.associerClient.bind(this);
+    this.changerStatut = this.changerStatut.bind(this);
+    this.modifierBatterieData = this.modifierBatterieData.bind(this);
   }
-
+  componentDidMount(){
+    this.getData();
+  }
+  getData(){
+    fetch(urlStatutsCles)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        statutsClesData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch(urlBatteries)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        batteriesData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -83,15 +122,24 @@ export default class GestionDesBatteries extends Component {
   }
   toggleInsertBatterieModal(){
     this.setState({
-      isInsertBatterieModal : !this.state.isInsertBatterieModal
+      isInsertBatterieModal : !this.state.isInsertBatterieModal,
+      isInsertBatterieSuccess : true
     });
   }
-  toggleAssocierLocataireModal(data,type){
-    console.log("toggleAssocierLocataireModal data",data,"type",type);
+  toggleModifierBatterieModal(data){
     this.setState({
-      isAssocierLocataireModal : !this.state.isAssocierLocataireModal,
+      isModifierBatterieModal : !this.state.isModifierBatterieModal,
+      isModifierBatterieSuccess : true,
+      batterieConcerne : data
+    });
+  }
+  toggleAssocierClientModal(data,type){
+    console.log("toggleAssocierClientModal data",data,"type",type);
+    this.setState({
+      isAssocierClientModal : !this.state.isAssocierClientModal,
+      isAssocierClientSuccess : true,
       batterieConcerne : data,
-      locataireModalType : type
+      clientModalType : type
     });
   }
   toggleInfoCompletModal(data){
@@ -104,31 +152,219 @@ export default class GestionDesBatteries extends Component {
   toggleChangerStatutModal(data){
     this.setState({
       isChangerStatutModal : !this.state.isChangerStatutModal,
+      isChangerStatutSuccess : true,
       batterieConcerne : data
+    });
+  }
+  getUTCDate(date){
+    if(date) return date.split('T')[0];
+    else {
+      return 'Unknown';
+    }
+  }
+  addBatterieData(){
+    const queryMethod = "POST";
+    let data = {};
+    data["date_production"] = document.getElementById("date_production").value?document.getElementById("date_production").value:null;
+    data["date_ajout"] = document.getElementById("date_ajout").value?document.getElementById("date_ajout").value:null;
+    data["date_acquisition"] = document.getElementById("date_acquisition").value?document.getElementById("date_acquisition").value:null;
+    data["poids"] = document.getElementById("poids").value?data["poids"] = document.getElementById("poids").value:null;
+    data["puissance"] = document.getElementById("puissance").value;
+    data["cellule"] = document.getElementById("cellule").value;
+    data["nb_cycles"] = document.getElementById("nb_cycles").value?document.getElementById("nb_cycles").value:null;
+    data["bms"] = document.getElementById("bms").value;
+    data["identifiant_bms"] = document.getElementById("identifiant_bms").value;
+    data["identifiant"] = document.getElementById("identifiant").value;
+    data["statut"] = document.getElementById("statut").value?document.getElementById("statut").value:null;
+    fetch(urlBatteries,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isInsertBatterieSuccess : false
+          })
+        }else {
+          fetch(urlBatteries)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              batteriesData : responseJson,
+              isInsertBatterieModal : !this.state.isInsertBatterieModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  modifierBatterieData(){
+    const queryMethod = "PUT";
+    let data = {};
+    data["id_batterie"] = this.state.batterieConcerne["id_batterie"];
+    data["date_production"] = document.getElementById("date_production").value?document.getElementById("date_production").value:null;
+    data["date_ajout"] = document.getElementById("date_ajout").value?document.getElementById("date_ajout").value:null;
+    data["date_acquisition"] = document.getElementById("date_acquisition").value?document.getElementById("date_acquisition").value:null;
+    data["poids"] = document.getElementById("poids").value?data["poids"] = document.getElementById("poids").value:null;
+    data["puissance"] = document.getElementById("puissance").value;
+    data["cellule"] = document.getElementById("cellule").value;
+    data["nb_cycles"] = document.getElementById("nb_cycles").value?document.getElementById("nb_cycles").value:null;
+    data["bms"] = document.getElementById("bms").value;
+    data["identifiant_bms"] = document.getElementById("identifiant_bms").value;
+    data["identifiant"] = document.getElementById("identifiant").value;
+    data["statut"] = document.getElementById("statut").value?document.getElementById("statut").value:null;
+    fetch(urlBatteries,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isModifierBatterieSuccess : false
+          })
+        }else {
+          fetch(urlBatteries)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              batteriesData : responseJson,
+              isModifierBatterieModal : !this.state.isModifierBatterieModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  changerStatut(){
+    const queryMethod = "PUT";
+    const url = urlBatteries + '/statut';
+    let data = {};
+    data['id_batterie'] = this.state.batterieConcerne['id_batterie'];
+    data['statut'] = document.getElementById('statut').value;
+    fetch(url,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isChangerStatutSuccess : false
+          })
+        }else {
+          fetch(urlBatteries)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              batteriesData : responseJson,
+              isChangerStatutModal : !this.state.isChangerStatutModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  associerClient(){
+    const queryMethod = "PUT";
+    const url = urlBatteries + '/client';
+    let data = {};
+    data['id_batterie'] = this.state.batterieConcerne['id_batterie'];
+    data['id_client'] = document.getElementById('id_client').value;
+    data['clientModalType'] = this.state.clientModalType;
+    fetch(url,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isAssocierClientSucess : false
+          })
+        }else {
+          fetch(urlBatteries)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              batteriesData : responseJson,
+              isAssocierClientModal : !this.state.isAssocierClientModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
     });
   }
   batteriesGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher les Informations</button>
+        <button type="button" className="btn btn-info btn-sm col-sm-6" onClick={()=>this.toggleModifierBatterieModal(row)}>Modifier</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-6" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher les Informations</button>
       </div>
     );
   }
   batteriesStatutFormatter(cell,row){
     return (
       <div>
-        <button type="button" className={classnames("btn btn-sm col-sm-12",{ "btn-success" : cell==='1',"btn-info" : cell==='2',"btn-warning" : cell==='3'})} onClick={()=>this.toggleChangerStatutModal(row)}>{statut[cell]}</button>
+        <button type="button" className={classnames("btn btn-sm col-sm-12",{ "btn-success" : cell===1,"btn-info" : cell===2,"btn-warning" : cell===3})} onClick={()=>this.toggleChangerStatutModal(row)}>
+          {
+            this.state.statutsClesData.map((instance)=>{
+              if(instance['id_statutcle']===cell) return instance['lib_statutcle'];
+            })
+          }
+        </button>
       </div>
     );
   }
-  batteriesLocataireFormatter(cell,row){
+  batteriesClientFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleAssocierLocataireModal(row,1)}>Associer</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleAssocierClientModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierLocataireModal(row,2)}>Dissocier {cell}</button>
+        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierClientModal(row,2)}>Dissocier {cell}</button>
       );
     }
   }
@@ -184,16 +420,19 @@ export default class GestionDesBatteries extends Component {
                 <div className="form-group col-sm-12">
                   <label htmlFor="statut">Statut</label>
                   <select className="form-control" id="statut" placeholder="Statut">
-                    <option value='1'>{statut['1']}</option>
-                    <option value='2'>{statut['2']}</option>
-                    <option value='3'>{statut['3']}</option>
+                    {
+                      this.state.statutsClesData.map((instance,index)=>{
+                        return <option value={instance['id_statutcle']}>{instance['lib_statutcle']}</option>
+                      })
+                    }
                   </select>
                 </div>
               </div>
             </div>
+            {!this.state.isInsertBatterieSuccess?<span className="help-block text-danger">Error </span>:null}
           </ModalBody>
           <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertBatterieModal}>Submit</button>
+            <button type="button" className="btn btn-sm btn-success" onClick={this.addBatterieData}>Submit</button>
             <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertBatterieModal}>Cancel</button>
           </ModalFooter>
         </Modal>
@@ -247,7 +486,7 @@ export default class GestionDesBatteries extends Component {
   }
   render(){
     let cur = this;
-    const optionsScooters = {
+    const optionsBatteries = {
       insertBtn: cur.batteriesInsertButton,
       toolBar: this.createCustomToolBar,
       clearSearch: true,
@@ -274,9 +513,9 @@ export default class GestionDesBatteries extends Component {
                   </div>
                   <div className="card-block">
                     <BootstrapTable
-                      options = {optionsScooters}
-                      data={ data }
-                      headerStyle = { { "background-color" : "#63c2de" } }
+                      options = {optionsBatteries}
+                      data={ this.state.batteriesData }
+                      headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow
                       search>
                       <TableHeaderColumn
@@ -300,12 +539,12 @@ export default class GestionDesBatteries extends Component {
                         Statut
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="locataire"
+                        dataField="id_client"
                         dataSort
-                        dataFormat={ this.batteriesLocataireFormatter }
-                        filter={ { type: 'TextFilter', placeholder: "Locataire"} }
+                        dataFormat={ this.batteriesClientFormatter }
+                        filter={ { type: 'TextFilter', placeholder: "Client"} }
                         tdStyle = {{"textAlign" : "center"}}>
-                        Locataire
+                        Client
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
@@ -328,9 +567,9 @@ export default class GestionDesBatteries extends Component {
             </TabContent>
           </div>
           {
-            this.state.isAssocierLocataireModal?
-            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierLocataireModal} toggle={this.toggleAssocierLocataireModal}>
-              <ModalHeader toggle={this.toggleAssocierLocataireModal}>{this.state.locataireModalType===1?"Associer un Locataire":"Dissocier un Locataire"}</ModalHeader>
+            this.state.isAssocierClientModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierClientModal} toggle={this.toggleAssocierClientModal}>
+              <ModalHeader toggle={this.toggleAssocierClientModal}>{this.state.clientModalType===1?"Associer un Client":"Dissocier un Client"}</ModalHeader>
               <ModalBody>
                 <div>
                   <div className="form-group col-sm-12">
@@ -338,14 +577,15 @@ export default class GestionDesBatteries extends Component {
                     <input type="text" className="form-control" id="id_batterie" placeholder="Batterie ID" defaultValue = {this.state.batterieConcerne["id_batterie"]} disabled/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="id_locataire">Locataire ID</label>
-                    <input type="text" className="form-control" id="id_locataire" placeholder="Locataire ID" defaultValue = {this.state.locataireModalType===1?null:this.state.batterieConcerne["id_locataire"]} disabled={this.state.locataireModalType!==1}/>
+                    <label htmlFor="id_client">Client ID</label>
+                    <input type="text" className="form-control" id="id_client" placeholder="Client ID" defaultValue = {this.state.clientModalType===1?null:this.state.batterieConcerne["id_client"]} disabled={this.state.clientModalType!==1}/>
                   </div>
                 </div>
+                {!this.state.isAssocierClientSuccess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAssocierLocataireModal}>Submit</button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierLocataireModal}>Cancel</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.associerClient}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierClientModal}>Cancel</button>
               </ModalFooter>
             </Modal>:null
           }
@@ -360,17 +600,20 @@ export default class GestionDesBatteries extends Component {
                     <input type="text" className="form-control" id="id_batterie" placeholder="Batterie ID" defaultValue = {this.state.batterieConcerne["id_batterie"]} disabled/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="id_locataire">Statut</label>
+                    <label htmlFor="statut">Statut</label>
                     <select className="form-control" id="statut" placeholder="Statut">
-                      <option value='1'>{statut['1']}</option>
-                      <option value='2'>{statut['2']}</option>
-                      <option value='3'>{statut['3']}</option>
+                      {
+                        this.state.statutsClesData.map((instance,index)=>{
+                          return <option value={instance['id_statutcle']}>{instance['lib_statutcle']}</option>
+                        })
+                      }
                     </select>
                   </div>
                 </div>
+                {!this.state.isChangerStatutSuccess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleChangerStatutModal}>Submit</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.changerStatut}>Submit</button>
                 <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleChangerStatutModal}>Cancel</button>
               </ModalFooter>
             </Modal>:null
@@ -392,7 +635,7 @@ export default class GestionDesBatteries extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.batterieConcerne["date_production"]}</div>
+                        <div>{this.getUTCDate(this.state.batterieConcerne["date_production"])}</div>
                         <small className="text-muted">Date de Production</small>
                       </div>
                     </div>
@@ -400,7 +643,7 @@ export default class GestionDesBatteries extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.batterieConcerne["date_acquisition"]}</div>
+                        <div>{this.getUTCDate(this.state.batterieConcerne["date_acquisition"])}</div>
                         <small className="text-muted">Date d&#39;Acquisition</small>
                       </div>
                     </div>
@@ -408,7 +651,7 @@ export default class GestionDesBatteries extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.batterieConcerne["date_ajout"]}</div>
+                        <div>{this.getUTCDate(this.state.batterieConcerne["date_ajout"])}</div>
                         <small className="text-muted">Date d&#39;Ajout</small>
                       </div>
                     </div>
@@ -433,12 +676,18 @@ export default class GestionDesBatteries extends Component {
                       <small className="text-muted text-uppercase font-weight-bold">Nombre Cycle Recharge</small>
                     </div>
                   </div>
-                  <div className={classnames("card card-inverse",{ "card-success" : this.state.batterieConcerne["statut"]==='1',"card-info" : this.state.batterieConcerne["statut"]==='2',"card-warning" : this.state.batterieConcerne["statut"]==='3'})}>
+                  <div className={classnames("card card-inverse",{ "card-success" : this.state.batterieConcerne["statut"]===1,"card-info" : this.state.batterieConcerne["statut"]===2,"card-warning" : this.state.batterieConcerne["statut"]===3})}>
                     <div className="card-block">
                       <div className="h1 text-muted text-right mb-2">
                         <i className="icon-speedometer"></i>
                       </div>
-                      <div className="h4 mb-0">{statut[this.state.batterieConcerne["statut"]]}</div>
+                      <div className="h4 mb-0">
+                        {
+                          this.state.statutsClesData.map((instance)=>{
+                            if(instance['id_statutcle']===this.state.batterieConcerne["statut"]) return instance['lib_statutcle'];
+                          })
+                        }
+                      </div>
                       <small className="text-muted text-uppercase font-weight-bold">Statut</small>
                     </div>
                   </div>
@@ -511,18 +760,84 @@ export default class GestionDesBatteries extends Component {
 
                 </div>
                 <div>
-                  <div>Historique locataire</div>
+                  <div>Historique client</div>
                   <div>Historique statut</div>
                   <div>Historique maintenances</div>
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInfoCompletModal}>Submit</button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInfoCompletModal}>Cancel</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInfoCompletModal}>Close</button>
               </ModalFooter>
             </Modal>:null
           }
+          {
+            this.state.isModifierBatterieModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isModifierBatterieModal} toggle={this.toggleModifierBatterieModal}>
+              <ModalHeader toggle={this.toggleModifierBatterieModal}>Modifier un Batterie</ModalHeader>
+              <ModalBody>
+                <div>
+                  <div className="row">
+                    <div className="form-group col-sm-4">
+                      <label htmlFor="date_production">Date de Production</label>
+                      <input type="date" className="form-control" id="date_production" placeholder="Date de Production" defaultValue = {this.getUTCDate(this.state.batterieConcerne["date_production"])}/>
+                    </div>
+                    <div className="form-group col-sm-4">
+                      <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
+                      <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition" defaultValue = {this.getUTCDate(this.state.batterieConcerne["date_acquisition"])}/>
+                    </div>
+                    <div className="form-group col-sm-4">
+                      <label htmlFor="date_ajout">Date d&#39;ajout</label>
+                      <input type="date" className="form-control" id="date_ajout" placeholder="Date d'ajout" defaultValue = {this.getUTCDate(this.state.batterieConcerne["date_ajout"])}/>
+                    </div>
+                    <div className="form-group col-sm-6">
+                      <label htmlFor="poids">Poids</label>
+                      <input type="text" className="form-control" id="poids" placeholder="Poids" defaultValue = {this.state.batterieConcerne['poids']}/>
+                    </div>
+                    <div className="form-group col-sm-6">
+                      <label htmlFor="puissance">Puissance</label>
+                      <input type="text" className="form-control" id="puissance" placeholder="Puissance" defaultValue = {this.state.batterieConcerne['puissance']}/>
+                    </div>
+                    <div className="form-group col-sm-6">
+                      <label htmlFor="cellule">Cellule</label>
+                      <input type="text" className="form-control" id="cellule" placeholder="Cellule" defaultValue = {this.state.batterieConcerne['cellule']}/>
+                    </div>
+                    <div className="form-group col-sm-6">
+                      <label htmlFor="nb_cycles">Nombre de Cycle</label>
 
+                      <input type="text" className="form-control" id="nb_cycles" placeholder="Nombre de Cycle" defaultValue = {this.state.batterieConcerne['nb_cycles']}/>
+                    </div>
+                    <div className="form-group col-sm-6">
+                      <label htmlFor="bms">BMS</label>
+                      <input type="text" className="form-control" id="bms" placeholder="BMS" defaultValue = {this.state.batterieConcerne['bms']}/>
+                    </div>
+                    <div className="form-group col-sm-6">
+                      <label htmlFor="identifiant_bms">Identifiant du BMS</label>
+                      <input type="text" className="form-control" id="identifiant_bms" placeholder="Identifiant du BMS" defaultValue = {this.state.batterieConcerne['identifiant_bms']}/>
+                    </div>
+                    <div className="form-group col-sm-12">
+                      <label htmlFor="identifiant">Identifiant</label>
+                      <input type="text" className="form-control" id="identifiant" placeholder="Identifiant" defaultValue = {this.state.batterieConcerne['identifiant']}/>
+                    </div>
+                    <div className="form-group col-sm-12">
+                      <label htmlFor="statut">Statut</label>
+                      <select className="form-control" id="statut" placeholder="Statut" defaultValue = {this.state.batterieConcerne['statut']}>
+                        {
+                          this.state.statutsClesData.map((instance,index)=>{
+                            return <option value={instance['id_statutcle']}>{instance['lib_statutcle']}</option>
+                          })
+                        }
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                {!this.state.isModifierBatterieSuccess?<span className="help-block text-danger">Error </span>:null}
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.modifierBatterieData}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierBatterieModal}>Cancel</button>
+              </ModalFooter>
+            </Modal>:null
+          }
         </div>
       </div>
     );

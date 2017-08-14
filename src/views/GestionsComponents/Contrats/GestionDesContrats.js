@@ -286,7 +286,7 @@ export default class GestionDesContrats extends Component {
                     <BootstrapTable
                       options = {optionsContrats}
                       data={ contrat_data }
-                      headerStyle = { { "background-color" : "#63c2de" } }
+                      headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow>
                       <TableHeaderColumn
                         dataField="id_contrat"
@@ -338,7 +338,7 @@ export default class GestionDesContrats extends Component {
                   <BootstrapTable
                     options = {optionsTypeContrats}
                     data = { type_data }
-                    headerStyle = { { "background-color" : "#63c2de" } }
+                    headerStyle = { { "backgroundColor" : "#63c2de" } }
                     insertRow>
                     <TableHeaderColumn
                       dataField="id_type_contrat"

@@ -15,7 +15,7 @@ export default class GestionDesUtilisateurs extends Component {
               <div className="card-block">
                 <BootstrapTable
                   data={ data }
-                  headerStyle = { { "background-color" : "rgb(142, 194, 231)" } }>
+                  headerStyle = { { "backgroundColor" : "rgb(142, 194, 231)" } }>
                   <TableHeaderColumn
                     dataField="name"
                     isKey
