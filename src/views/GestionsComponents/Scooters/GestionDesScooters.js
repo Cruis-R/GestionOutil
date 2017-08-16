@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button, Progress } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
-import urls from '../configs/serverConfigurations'
+import urls from '../configs/serverConfigurations';
 const data = [{
   "id_scooter" : 1,
   "num_cruisrent" : "00000001",
@@ -35,6 +35,7 @@ const statut = {
 }
 const urlStatuts = urls.statuts;
 const urlScooters = urls.scooters;
+const urlBoitiersAssocier = urls.boitiers_associer;
 export default class GestionDesScooters extends Component {
   constructor(props) {
     super(props);
@@ -55,7 +56,8 @@ export default class GestionDesScooters extends Component {
       boitierModalType : 1,
       scooterConcerne : {},
       scootersData : [],
-      statutsData : []
+      statutsData : [],
+      boitiersAssocier : []
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertScooterModal = this.toggleInsertScooterModal.bind(this);
@@ -95,6 +97,18 @@ export default class GestionDesScooters extends Component {
       this.setState({
         scootersData : responseJson
       })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  getAssocierData(){
+    fetch(urlBoitiersAssocier)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        boitiersAssocier : responseJson
+      });
     })
     .catch((error) => {
       console.error(error);
@@ -310,6 +324,9 @@ export default class GestionDesScooters extends Component {
   }
   toggleAssocierBoitierModal(data,type){
     console.log("toggleAssocierBoitierModal data",data,"type",type);
+    if(type===1){
+      this.getAssocierData();
+    }
     this.setState({
       isAssocierBoitierModal : !this.state.isAssocierBoitierModal,
       scooterConcerne : data,
@@ -655,8 +672,18 @@ export default class GestionDesScooters extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_boitier">Boitier ID</label>
-                    <input type="text" className="form-control" id="id_boitier" placeholder="Boitier ID" defaultValue = {this.state.boitierModalType===1?"":this.state.scooterConcerne["id_boitier"]} disabled={this.state.boitierModalType!==1}/>
-                  </div>
+                    {
+                      this.state.boitierModalType===1?
+                      <select className="form-control" id="id_boitier" placeholder="id_boitier" key="id_boitier">
+                      {
+                        this.state.boitiersAssocier.length>0?this.state.boitiersAssocier.map((instance,index)=>{
+                          return <option  key={index+instance['id_boitier']} value={instance['id_boitier']}>{instance['id_boitier']}</option>
+                        }):<option key="non_disponible">Non Boitier Disponible</option>
+                      }
+                      </select>:
+                      <input type="text" className="form-control"  key="id_boitier" id="id_boitier" placeholder="Boitier ID" defaultValue = {this.state.scooterConcerne["id_boitier"]} disabled/>
+                    }
+                </div>
                 </div>
                 {!this.state.isAssocierBoitierSucess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>

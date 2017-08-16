@@ -673,7 +673,13 @@ export default class GestionDesUtilisateurs extends Component {
                   <div className="input-group">
                     <span className="input-group-addon col-1"><i className="fa fa-archive"></i></span>
                     <span className="input-group-addon col-3">Profil</span>
-                    <input type="text" id="profil" name="profil" className="form-control" placeholder="Profil" defaultValue={this.state.utilisateurConcerne["profil"]}/>
+                    <select className="form-control" id="profil" placeholder="Profil" defaultValue={this.state.utilisateurConcerne["profil"]}>
+                    {
+                      this.state.profilData.map((instance,index)=>{
+                        return <option value={instance['id_profil']}>{instance['lib_profil']}</option>
+                      })
+                    }
+                    </select>
                   </div>
                 </div>
                 <div className="form-group">

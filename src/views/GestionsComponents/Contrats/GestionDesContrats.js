@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
-import mysql from 'mysql2/promise'
+import mysql from 'mysql2/promise';
+import urls from '../configs/serverConfigurations';
 const type_data = [{
   "id_type_contrat":"1",
   "nom":"Contrat_1",
@@ -22,7 +23,9 @@ const contrat_data=[{
   "annexe_accessoires" : "1",
   "annexe_scooter" : "1",
   "actif" : true
-}]
+}];
+
+const urlContrats = urls.contrats;
 export default class GestionDesContrats extends Component {
   constructor(props) {
     super(props);
@@ -36,7 +39,8 @@ export default class GestionDesContrats extends Component {
       isModifierTypeContratModal : false,
       isAssocierContratModal : false,
       typeAssocierContratModal : 1,
-      typeContratConcerne : null
+      typeContratConcerne : null,
+      contratsData : []
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertContratModal = this.toggleInsertContratModal.bind(this);
@@ -50,10 +54,19 @@ export default class GestionDesContrats extends Component {
     this.typeContratGestionFormatter = this.typeContratGestionFormatter.bind(this);
   }
   componentDidMount(){
-    this.connectToDB();
+    this.getData();
   }
-  connectToDB(){
-  
+  getData(){
+    fetch(urlContrats)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        contratsData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
   }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
@@ -127,6 +140,10 @@ export default class GestionDesContrats extends Component {
     }else {
       return <button type="button" className="btn btn-danger btn-sm col">Non</button>
     }
+  }
+  dateFormatter(cell, row) {
+    let t = cell?new Date(cell).toISOString().split('T')[0]:null;
+    return t;
   }
   contratsInsertButton = () => {
     return (
@@ -285,7 +302,7 @@ export default class GestionDesContrats extends Component {
                   <div className="card-block">
                     <BootstrapTable
                       options = {optionsContrats}
-                      data={ contrat_data }
+                      data={ this.state.contratsData }
                       headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow>
                       <TableHeaderColumn
@@ -296,6 +313,7 @@ export default class GestionDesContrats extends Component {
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="datedebut"
+                        dataFormat = {this.dateFormatter}
                         dataSort>
                         Date Début
                       </TableHeaderColumn>

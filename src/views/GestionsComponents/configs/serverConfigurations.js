@@ -6,5 +6,10 @@ module.exports = {
   statutscles : 'http://localhost:8081/statuts_cles',
   batteries : 'http://localhost:8081/batteries',
   boitiers : 'http://localhost:8081/boitiers',
-  chargeurs : 'http://localhost:8081/chargeurs'
+  boitiers_associer : 'http://localhost:8081/boitiers/associer',
+  chargeurs : 'http://localhost:8081/chargeurs',
+  contrats :'http://localhost:8081/contrats',
+  facturations : 'http://localhost:8081/facturations',
+  flottes : 'http://localhost:8081/flottes',
+  clients : 'http://localhost:8081/clients'
 }

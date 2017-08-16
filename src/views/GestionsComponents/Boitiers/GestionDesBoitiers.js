@@ -342,8 +342,7 @@ export default class GestionDesBoitiers extends Component {
   boitiersGestionFormatter(cell,row){
     return (
       <div>
-        <button type="button" className="btn btn-info btn-sm col-sm-6" onClick={()=>this.toggleModifierBoitierModal(row)}>Modifier</button>
-        <button type="button" className="btn btn-success btn-sm col-sm-6" onClick={()=>this.toggleAfficherBoitierModal(row)}>Afficher les Informations</button>
+        <button type="button" className="btn btn-info btn-sm col-sm-12" onClick={()=>this.toggleModifierBoitierModal(row)}>Modifier</button>
       </div>
     );
   }
@@ -612,69 +611,6 @@ export default class GestionDesBoitiers extends Component {
               <ModalFooter>
                 <button type="button" className="btn btn-sm btn-success" onClick={this.changerStatut}>Submit</button>
                 <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleChangerStatutModal}>Cancel</button>
-              </ModalFooter>
-            </Modal>:null
-          }
-          {
-            this.state.isAfficherBoitierModal?
-            <Modal className='modal-lg modal-info' isOpen={this.state.isAfficherBoitierModal} toggle={this.toggleAfficherBoitierModal}>
-              <ModalHeader toggle={this.toggleAfficherBoitierModal}>Afficher/Modifier un Boitier</ModalHeader>
-              <ModalBody>
-                <div className="row">
-                  <div className="form-group col-sm-4">
-                    <label htmlFor="date_reception">Date de Reception</label>
-                    <input type="date" className="form-control" id="date_reception" placeholder="Date de Reception" defaultValue={this.state.boitierConcerne["date_reception"]}/>
-                  </div>
-                  <div className="form-group col-sm-4">
-                    <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
-                    <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition" defaultValue={this.state.boitierConcerne["date_acquisition"]}/>
-                  </div>
-                  <div className="form-group col-sm-4">
-                    <label htmlFor="date_activation">Date d&#39;activation</label>
-                    <input type="date" className="form-control" id="date_activation" placeholder="Date d'activation" defaultValue={this.state.boitierConcerne["date_activation"]}/>
-                  </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="identifiant">Identifiant</label>
-                    <input type="text" className="form-control" id="identifiant" placeholder="Identifiant" defaultValue={this.state.boitierConcerne["identifiant"]}/>
-                  </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="imei">IMEI</label>
-                    <input type="text" className="form-control" id="imei" placeholder="IMEI" defaultValue={this.state.boitierConcerne["imei"]}/>
-                  </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="num_tel">Numéro de Téléphone</label>
-                    <input type="text" className="form-control" id="num_tel" placeholder="Numéro de Téléphone" defaultValue={this.state.boitierConcerne["num_tel"]}/>
-                  </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="forfait">Type de Forfait</label>
-                    <input type="text" className="form-control" id="forfait" placeholder="Type de Forfait"defaultValue={this.state.boitierConcerne["forfait"]}/>
-                  </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="code_puk">Code PUK</label>
-                    <input type="text" className="form-control" id="code_puk" placeholder="Code PUK" defaultValue={this.state.boitierConcerne["code_puk"]}/>
-                  </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="code_pin">Code PIN</label>
-                    <input type="text" className="form-control" id="code_pin" placeholder="Code PIN" defaultValue={this.state.boitierConcerne["code_pin"]}/>
-                  </div>
-                  <div className="form-group col-sm-12">
-                    <label htmlFor="password">Mot de Passe</label>
-                    <input type="text" className="form-control" id="password" placeholder="Mot de Passe" defaultValue={this.state.boitierConcerne["password"]}/>
-                  </div>
-                  <div className="form-group col-sm-12">
-                    <label htmlFor="statut">Statut</label>
-                    <select className="form-control" id="statut" placeholder="Statut" defaultValue={this.state.boitierConcerne["statut"]}>
-                    {
-                      this.state.statutsClesData.map((instance,index)=>{
-                        return <option value={instance['id_statutcle']}>{instance['lib_statutcle']}</option>
-                      })
-                    }
-                    </select>
-                  </div>
-                </div>
-              </ModalBody>
-              <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleAfficherBoitierModal}>Close</button>
               </ModalFooter>
             </Modal>:null
           }
