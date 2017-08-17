@@ -19,28 +19,35 @@ const contrat_data=[{
   "address" : "Denfert Rochereau",
   "datedebut" : "2017-08-03",
   "annexe_batterie" : "1",
-  "annexe_chargeur" : "1",
+  "annexe_contrat" : "1",
   "annexe_accessoires" : "1",
   "annexe_scooter" : "1",
   "actif" : true
 }];
 
 const urlContrats = urls.contrats;
+const urlClients = urls.clients;
+const urlTypesContrats = urls.types_contrats;
 export default class GestionDesContrats extends Component {
   constructor(props) {
     super(props);
     this.state = {
       activeTab: '1',
       isInsertContratModal : false,
+      isInsertContratSuccess : true,
       isInsertTypeContratModal : false,
       isModifierContratModal : false,
+      isModifierContratSuccess : true,
       isScooterModalModal : false,
       contratConcerne : null,
       isModifierTypeContratModal : false,
       isAssocierContratModal : false,
       typeAssocierContratModal : 1,
       typeContratConcerne : null,
-      contratsData : []
+      contratsData : [],
+      clientsData : [],
+      typesContratsData : [],
+      typeContratSelection : {}
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertContratModal = this.toggleInsertContratModal.bind(this);
@@ -52,6 +59,10 @@ export default class GestionDesContrats extends Component {
     this.contratsGestionFormatter = this.contratsGestionFormatter.bind(this);
     this.contratsAssocierFormatter = this.contratsAssocierFormatter.bind(this);
     this.typeContratGestionFormatter = this.typeContratGestionFormatter.bind(this);
+    this.handleSelectTypeContrat = this.handleSelectTypeContrat.bind(this);
+    this.contratsInsertButton = this.contratsInsertButton.bind(this);
+    this.addContratData = this.addContratData.bind(this);
+    this.modifierContratData = this.modifierContratData.bind(this);
   }
   componentDidMount(){
     this.getData();
@@ -64,6 +75,115 @@ export default class GestionDesContrats extends Component {
         contratsData : responseJson
       })
     })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch(urlTypesContrats)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        typesContratsData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch(urlClients)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        clientsData : responseJson
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  addContratData(){
+    const queryMethod = "POST";
+    let data = {};
+    data['id_type_contrat']=document.getElementById("id_type_contrat").value?document.getElementById("id_type_contrat").value:null
+    data['id_client']=document.getElementById("id_client").value?document.getElementById("id_client").value:null
+    data['adresse_facturation']=document.getElementById("adresse_facturation").value?document.getElementById("adresse_facturation").value:null
+    data['niveau_service']=document.getElementById("niveau_service").value?document.getElementById("niveau_service").value:null
+    data['datedebut']=document.getElementById("datedebut").value?document.getElementById("datedebut").value:null
+    data['duree']=document.getElementById("duree").value?document.getElementById("duree").value:null
+    data['tarifassurance']=document.getElementById("tarifassurance").value?document.getElementById("tarifassurance").value:null
+    data['mensualite_ht']=document.getElementById("mensualite_ht").value?document.getElementById("mensualite_ht").value:null
+    fetch(urlContrats,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isInsertContratSuccess : false
+          })
+        }else {
+          fetch(urlContrats)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              contratsData : responseJson,
+              isInsertContratModal : !this.state.isInsertContratModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  modifierContratData(){
+    const queryMethod = "PUT";
+    let data = {};
+    data["id_contrat"] = this.state.contratConcerne["id_contrat"];
+    data['id_type_contrat']=document.getElementById("id_type_contrat").value?document.getElementById("id_type_contrat").value:null
+    data['id_client']=document.getElementById("id_client").value?document.getElementById("id_client").value:null
+    data['adresse_facturation']=document.getElementById("adresse_facturation").value?document.getElementById("adresse_facturation").value:null
+    data['niveau_service']=document.getElementById("niveau_service").value?document.getElementById("niveau_service").value:null
+    data['datedebut']=document.getElementById("datedebut").value?document.getElementById("datedebut").value:null
+    data['duree']=document.getElementById("duree").value?document.getElementById("duree").value:null
+    data['tarifassurance']=document.getElementById("tarifassurance").value?document.getElementById("tarifassurance").value:null
+    data['mensualite_ht']=document.getElementById("mensualite_ht").value?document.getElementById("mensualite_ht").value:null
+    fetch(urlContrats,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isModifierContratSuccess : false
+          })
+        }else {
+          fetch(urlContrats)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              contratsData : responseJson,
+              isModifierContratModal : !this.state.isModifierContratModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
     .catch((error) => {
       console.error(error);
     });
@@ -110,6 +230,17 @@ export default class GestionDesContrats extends Component {
       contratConcerne : data
     });
   }
+  handleSelectTypeContrat(e){
+    let t={};
+    this.state.typesContratsData.map((instance,index)=>{
+      if(instance['id_type_contrat']===parseInt(e.target.value)){
+        t = instance;
+      }
+    })
+    this.setState({
+      typeContratSelection : t
+    })
+  }
   contratsGestionFormatter(cell,row){
     return (
       <div>
@@ -145,6 +276,16 @@ export default class GestionDesContrats extends Component {
     let t = cell?new Date(cell).toISOString().split('T')[0]:null;
     return t;
   }
+  euroFormatter(cell,row){
+    return(
+      cell+' €'
+    )
+  }
+  dureeFormatter(cell,row){
+    return(
+      cell+' mois'
+    )
+  }
   contratsInsertButton = () => {
     return (
       <div>
@@ -154,26 +295,56 @@ export default class GestionDesContrats extends Component {
           <ModalBody>
             <div>
               <div className="row">
-                <div className="form-group col-sm-6">
-                  <label htmlFor="id_contrat">Contrat ID</label>
-                  <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID"/>
+                <div className="form-group col-sm-12">
+                  <label htmlFor="id_client">N° Client</label>
+                  <select className="form-control" id="id_client" placeholder="N° Client" defaultValue='selectionner un client' onChange={(e)=>this.handleSelectTypeContrat(e)}>
+                    <option disabled value='selectionner un client'> -- selectionner un client -- </option>
+                    {
+                      this.state.clientsData.map((instance,index)=>{
+                        return <option value={instance['id_client']}>{'ID: '+instance['id_client']+'\t'+instance['societe']}</option>
+                      })
+                    }
+                  </select>
                 </div>
-                <div className="form-group col-sm-6">
-                  <label htmlFor="niveau_assurance">Niveau Assurance</label>
-                  <input type="text" className="form-control" id="niveau_assurance" placeholder="Niveau Assurance"/>
+                <div className="form-group col-sm-12">
+                  <label htmlFor="id_type_contrat">Selectionner un Type de Contrat</label>
+                  <select className="form-control" id="id_type_contrat" placeholder="Type de Contrat" defaultValue='selectionner un forfait' onChange={(e)=>this.handleSelectTypeContrat(e)}>
+                    <option disabled value='selectionner un forfait'> -- selectionner un forfait -- </option>
+                    {
+                      this.state.typesContratsData.map((instance,index)=>{
+                        return <option value={instance['id_type_contrat']}>{instance['nom']}</option>
+                      })
+                    }
+                  </select>
                 </div>
-              </div>
-              <div className="row">
+                <div className="form-group col-sm-12">
+                  <label htmlFor="adresse_facturation">Address Facturation</label>
+                  <input type="text" className="form-control" id="adresse_facturation" placeholder="Address Facturation"/>
+                </div>
+                <div className="form-group col-sm-12">
+                  <label htmlFor="niveau_service">Niveau Service / KMs</label>
+                  <input type="text" className="form-control" id="niveau_service" placeholder="Niveau Service" value={this.state.typeContratSelection['niveau_service']}/>
+                </div>
+                <div className="form-group col-sm-4">
+                  <label htmlFor="durée">Durée / Mois</label>
+                  <input type="text" className="form-control" id="duree" placeholder="Durée" value={this.state.typeContratSelection['duree']}/>
+                </div>
+                <div className="form-group col-sm-4">
+                  <label htmlFor="tarifmensuel">Mensualité HT / €</label>
+                  <input type="text" className="form-control" id="mensualite_ht" placeholder="Mensualité HT" value={this.state.typeContratSelection['mensualite_ht']}/>
+                </div>
+                <div className="form-group col-sm-4">
+                  <label htmlFor="assurance_rc">Tarif Assurance / €</label>
+                  <input type="text" className="form-control" id="tarifassurance" placeholder="Tarif Assurance" value={this.state.typeContratSelection['tarifassurance']}/>
+                </div>
                 <div className="form-group col-sm-12">
                   <label htmlFor="datedebut">Date Début</label>
                   <input type="date" className="form-control" id="datedebut" placeholder="Date Début"/>
                 </div>
-              </div>
-              <div className="form-group">
-                <label htmlFor="annexe_scooter">Annexe Scooter</label>
-                <input type="text" className="form-control" id="annexe_scooter" placeholder="Annexe Scooter"/>
-              </div>
-              <div className="row">
+                <div className="form-group col-sm-12">
+                  <label htmlFor="annexe_scooter">Annexe Scooter</label>
+                  <input type="text" className="form-control" id="annexe_scooter" placeholder="Annexe Scooter"/>
+                </div>
                 <div className="form-group col-sm-4">
                   <label htmlFor="annexe_accessoires">Annexe Accessoires</label>
                   <input type="text" className="form-control" id="annexe_accessoires" placeholder="Annexe Accessoires"/>
@@ -183,14 +354,14 @@ export default class GestionDesContrats extends Component {
                   <input type="text" className="form-control" id="annexe_batterie" placeholder="Annexe Batterie"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="annexe_chargeur">Annexe Chargeur</label>
-                  <input type="text" className="form-control" id="annexe_chargeur" placeholder="Annexe Chargeur"/>
+                  <label htmlFor="annexe_contrat">Annexe Contrat</label>
+                  <input type="text" className="form-control" id="annexe_contrat" placeholder="Annexe Contrat"/>
                 </div>
               </div>
             </div>
           </ModalBody>
           <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertContratModal}>Submit</button>
+            <button type="button" className="btn btn-sm btn-success" onClick={this.addContratData}>Submit</button>
             <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertContratModal}>Cancel</button>
           </ModalFooter>
         </Modal>
@@ -206,37 +377,29 @@ export default class GestionDesContrats extends Component {
           <ModalBody>
             <div>
               <div className="row">
-                <div className="form-group col-sm-6">
-                  <label htmlFor="id_type_contrat">Contrat ID</label>
-                  <input type="text" className="form-control" id="id_type_contrat" placeholder="Contrat Type ID"/>
-                </div>
-                <div className="form-group col-sm-6">
+                <div className="form-group col-sm-12">
                   <label htmlFor="nom">Nom</label>
                   <input type="text" className="form-control" id="nom" placeholder="Nom"/>
                 </div>
-              </div>
-              <div className="row">
                 <div className="form-group col-sm-12">
                   <label htmlFor="description">Description</label>
                   <input type="text" className="form-control" id="description" placeholder="Description"/>
                 </div>
-              </div>
-              <div className="form-group">
-                <label htmlFor="niveau_service">Niveau Service</label>
-                <input type="text" className="form-control" id="niveau_service" placeholder="Niveau Service"/>
-              </div>
-              <div className="row">
-                <div className="form-group col-sm-4">
-                  <label htmlFor="durée">Durée</label>
-                  <input type="text" className="form-control" id="durée" placeholder="Durée"/>
+                <div className="form-group col-sm-12">
+                  <label htmlFor="niveau_service">Niveau Service / KMs</label>
+                  <input type="text" className="form-control" id="niveau_service" placeholder="Niveau Service"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="tarifmensuel">Mensualité</label>
-                  <input type="text" className="form-control" id="tarifmensuel" placeholder="Mensualité"/>
+                  <label htmlFor="durée">Durée / Mois</label>
+                  <input type="text" className="form-control" id="duree" placeholder="Durée"/>
                 </div>
                 <div className="form-group col-sm-4">
-                  <label htmlFor="assurance_rc">Assurance</label>
-                  <input type="text" className="form-control" id="assurance_rc" placeholder="Assurance"/>
+                  <label htmlFor="tarifmensuel">Mensualité HT / €</label>
+                  <input type="text" className="form-control" id="mensualite_ht" placeholder="Mensualité HT"/>
+                </div>
+                <div className="form-group col-sm-4">
+                  <label htmlFor="assurance_rc">Tarif Assurance / €</label>
+                  <input type="text" className="form-control" id="tarifassurance" placeholder="Tarif Assurance"/>
                 </div>
               </div>
             </div>
@@ -308,20 +471,27 @@ export default class GestionDesContrats extends Component {
                       <TableHeaderColumn
                         dataField="id_contrat"
                         isKey
-                        dataSort>
+                        dataSort
+                        width = "10%">
                         ID
+                      </TableHeaderColumn>
+                      <TableHeaderColumn
+                        dataField="id_client"
+                        dataSort
+                        width = "10%">
+                        N° Client
+                      </TableHeaderColumn>
+                      <TableHeaderColumn
+                        dataField="societe"
+                        dataSort
+                        width = "15%">
+                        Société
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="datedebut"
                         dataFormat = {this.dateFormatter}
                         dataSort>
                         Date Début
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="address"
-                        dataSort
-                        width = "20%">
-                        Address
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="flotte"
@@ -355,43 +525,53 @@ export default class GestionDesContrats extends Component {
                 <div className="card-block">
                   <BootstrapTable
                     options = {optionsTypeContrats}
-                    data = { type_data }
+                    data = { this.state.typesContratsData }
                     headerStyle = { { "backgroundColor" : "#63c2de" } }
                     insertRow>
                     <TableHeaderColumn
                       dataField="id_type_contrat"
                       isKey
-                      dataSort>
+                      dataSort
+                      width = '5%'>
                       ID
                     </TableHeaderColumn>
                     <TableHeaderColumn
                       dataField="nom"
-                      dataSort>
+                      dataSort
+                      width = '20%'>
                       Nom
                     </TableHeaderColumn>
                     <TableHeaderColumn
                       dataField="description"
-                      dataSort>
+                      dataSort
+                      width = '20%'>
                       Description
                     </TableHeaderColumn>
                     <TableHeaderColumn
                       dataField="niveau_service"
-                      dataSort>
+                      dataSort
+                      width = '10%'>
                       Niveau Service
                     </TableHeaderColumn>
                     <TableHeaderColumn
-                      dataField="tarifmensuel"
-                      dataSort>
-                      Mensualité
+                      dataField="mensualite_ht"
+                      dataSort
+                      dataFormat = {this.euroFormatter}
+                      width = '10%'>
+                      Mensualité HT
                     </TableHeaderColumn>
                     <TableHeaderColumn
-                      dataField="assurance_rc"
-                      dataSort>
-                      Assurance
+                      dataField="tarifassurance"
+                      dataSort
+                      dataFormat = {this.euroFormatter}
+                      width = '10%'>
+                      Tarif Assurance
                     </TableHeaderColumn>
                     <TableHeaderColumn
-                      dataField="durée"
-                      dataSort>
+                      dataField="duree"
+                      dataSort
+                      dataFormat = {this.dureeFormatter}
+                      width = '10%'>
                       Durée
                     </TableHeaderColumn>
                     <TableHeaderColumn
@@ -416,43 +596,73 @@ export default class GestionDesContrats extends Component {
             <ModalBody>
               <div>
                 <div className="row">
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="id_contrat">Contrat ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue={this.state.contratConcerne["id_contrat"]}/>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="id_client">N° Client</label>
+                    <select className="form-control" id="id_client" placeholder="N° Client" defaultValue={this.state.contratConcerne['id_client']} onChange={(e)=>this.handleSelectTypeContrat(e)}>
+                      <option disabled value='selectionner un client'> -- selectionner un client -- </option>
+                      {
+                        this.state.clientsData.map((instance,index)=>{
+                          return <option value={instance['id_client']}>{'ID: '+instance['id_client']+'\t'+instance['societe']}</option>
+                        })
+                      }
+                    </select>
                   </div>
-                  <div className="form-group col-sm-6">
-                    <label htmlFor="niveau_assurance">Niveau Assurance</label>
-                    <input type="text" className="form-control" id="niveau_assurance" placeholder="Niveau Assurance" defaultValue={this.state.contratConcerne["niveau_assurance"]}/>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="id_type_contrat">Selectionner un Type de Contrat</label>
+                    <select className="form-control" id="id_type_contrat" placeholder="Type de Contrat" defaultValue={this.state.contratConcerne['id_type_contrat']} onChange={(e)=>this.handleSelectTypeContrat(e)}>
+                      <option disabled value='selectionner un forfait'> -- selectionner un forfait -- </option>
+                      {
+                        this.state.typesContratsData.map((instance,index)=>{
+                          return <option value={instance['id_type_contrat']}>{instance['nom']}</option>
+                        })
+                      }
+                    </select>
                   </div>
-                </div>
-                <div className="row">
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="adresse_facturation">Address Facturation</label>
+                    <input type="text" className="form-control" id="adresse_facturation" placeholder="Address Facturation" defaultValue ={this.state.contratConcerne['adresse_facturation']}/>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="niveau_service">Niveau Service</label>
+                    <input type="text" className="form-control" id="niveau_service" placeholder="Niveau Service" defaultValue ={this.state.contratConcerne['niveau_service']} value={this.state.typeContratSelection['niveau_service']}/>
+                  </div>
+                  <div className="form-group col-sm-4">
+                    <label htmlFor="durée">Durée / Mois</label>
+                    <input type="text" className="form-control" id="duree" placeholder="Durée" defaultValue ={this.state.contratConcerne['duree']} value={this.state.typeContratSelection['duree']}/>
+                  </div>
+                  <div className="form-group col-sm-4">
+                    <label htmlFor="tarifmensuel">Mensualité HT / €</label>
+                    <input type="text" className="form-control" id="mensualite_ht" placeholder="Mensualité HT" defaultValue ={this.state.contratConcerne['mensualite_ht']} value={this.state.typeContratSelection['mensualite_ht']}/>
+                  </div>
+                  <div className="form-group col-sm-4">
+                    <label htmlFor="assurance_rc">Tarif Assurance / €</label>
+                    <input type="text" className="form-control" id="tarifassurance" placeholder="Tarif Assurance" defaultValue ={this.state.contratConcerne['tarifassurance']} value={this.state.typeContratSelection['tarifassurance']}/>
+                  </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="datedebut">Date Début</label>
-                    <input type="date" className="form-control" id="datedebut" placeholder="Date Début" defaultValue={this.state.contratConcerne["datedebut"]}/>
+                    <input type="date" className="form-control" id="datedebut" placeholder="Date Début" defaultValue ={this.dateFormatter(this.state.contratConcerne['datedebut'])}/>
                   </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="annexe_scooter">Annexe Scooter</label>
-                  <input type="text" className="form-control" id="annexe_scooter" placeholder="Annexe Scooter" defaultValue={this.state.contratConcerne["annexe_scooter"]}/>
-                </div>
-                <div className="row">
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="annexe_scooter">Annexe Scooter</label>
+                    <input type="text" className="form-control" id="annexe_scooter" placeholder="Annexe Scooter"/>
+                  </div>
                   <div className="form-group col-sm-4">
                     <label htmlFor="annexe_accessoires">Annexe Accessoires</label>
-                    <input type="text" className="form-control" id="annexe_accessoires" placeholder="Annexe Accessoires" defaultValue={this.state.contratConcerne["annexe_accessoires"]}/>
+                    <input type="text" className="form-control" id="annexe_accessoires" placeholder="Annexe Accessoires"/>
                   </div>
                   <div className="form-group col-sm-4">
                     <label htmlFor="annexe_batterie">Annexe Batterie</label>
-                    <input type="text" className="form-control" id="annexe_batterie" placeholder="Annexe Batterie" defaultValue={this.state.contratConcerne["annexe_batterie"]}/>
+                    <input type="text" className="form-control" id="annexe_batterie" placeholder="Annexe Batterie"/>
                   </div>
                   <div className="form-group col-sm-4">
-                    <label htmlFor="annexe_chargeur">Annexe Chargeur</label>
-                    <input type="text" className="form-control" id="annexe_chargeur" placeholder="Annexe Chargeur" defaultValue={this.state.contratConcerne["annexe_chargeur"]}/>
+                    <label htmlFor="annexe_contrat">Annexe Contrat</label>
+                    <input type="text" className="form-control" id="annexe_contrat" placeholder="Annexe Contrat"/>
                   </div>
                 </div>
               </div>
             </ModalBody>
             <ModalFooter>
-              <button type="button" className="btn btn-sm btn-success" onClick={this.toggleModifierContratModal}>Submit</button>
+              <button type="button" className="btn btn-sm btn-success" onClick={this.modifierContratData}>Submit</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierContratModal}>Cancel</button>
             </ModalFooter>
           </Modal>:null
@@ -480,21 +690,21 @@ export default class GestionDesContrats extends Component {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="niveau_service">Niveau Service</label>
+                  <label htmlFor="niveau_service">Niveau Service / KMs</label>
                   <input type="text" className="form-control" id="niveau_service" placeholder="Niveau Service" defaultValue={this.state.typeContratConcerne["niveau_service"]}/>
                 </div>
                 <div className="row">
                   <div className="form-group col-sm-4">
-                    <label htmlFor="durée">Durée</label>
-                    <input type="text" className="form-control" id="durée" placeholder="Durée" defaultValue={this.state.typeContratConcerne["durée"]}/>
+                    <label htmlFor="durée">Durée / Mois</label>
+                    <input type="text" className="form-control" id="duree" placeholder="Durée" defaultValue={this.state.typeContratConcerne["duree"]}/>
                   </div>
                   <div className="form-group col-sm-4">
-                    <label htmlFor="tarifmensuel">Mensualité</label>
-                    <input type="text" className="form-control" id="tarifmensuel" placeholder="Mensualité" defaultValue={this.state.typeContratConcerne["tarifmensuel"]}/>
+                    <label htmlFor="tarifmensuel">Mensualité HT / €</label>
+                    <input type="text" className="form-control" id="mensualite_ht" placeholder="Mensualité" defaultValue={this.state.typeContratConcerne["mensualite_ht"]}/>
                   </div>
                   <div className="form-group col-sm-4">
-                    <label htmlFor="assurance_rc">Assurance</label>
-                    <input type="text" className="form-control" id="assurance_rc" placeholder="Assurance" defaultValue={this.state.typeContratConcerne["assurance_rc"]}/>
+                    <label htmlFor="assurance_rc">Assurance / €</label>
+                    <input type="text" className="form-control" id="tarifassurance" placeholder="Assurance" defaultValue={this.state.typeContratConcerne["tarifassurance"]}/>
                   </div>
                 </div>
               </div>

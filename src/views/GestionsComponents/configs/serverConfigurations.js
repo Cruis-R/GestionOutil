@@ -9,6 +9,7 @@ module.exports = {
   boitiers_associer : 'http://localhost:8081/boitiers/associer',
   chargeurs : 'http://localhost:8081/chargeurs',
   contrats :'http://localhost:8081/contrats',
+  types_contrats : 'http://localhost:8081/types_contrats',
   facturations : 'http://localhost:8081/facturations',
   flottes : 'http://localhost:8081/flottes',
   clients : 'http://localhost:8081/clients'

@@ -11,7 +11,7 @@ const data = [{
   "date_production" : "2017-08-03" ,
   "date_acquisition" : "2017-08-03",
   "date_ajout" : "2017-08-03",
-  "client" : "CruisR",
+  "contrat" : "CruisR",
   "identifiant" : "001"
 },{
   "id_chargeur" : 2,
@@ -44,14 +44,14 @@ export default class GestionDesChargeurs extends Component {
       activeTab: '1',
       isInsertChargeurModal : false,
       isInsertChargeurSuccess : true,
-      isAssocierClientModal : false,
-      isAssocierClientSuccess : true,
+      isAssocierContratModal : false,
+      isAssocierContratSuccess : true,
       isModifierChargeurModal : false,
       isModifierChargeurSuccess : true,
       isInfoCompletModal : false,
       isChangerStatutModal : false,
       isChangerStatutSuccess : true,
-      clientModalType : 1,
+      contratModalType : 1,
       chargeurConcerne : {},
       chargeursData : [],
       statutsClesData : []
@@ -59,14 +59,14 @@ export default class GestionDesChargeurs extends Component {
     this.toggle = this.toggle.bind(this);
     this.toggleInsertChargeurModal = this.toggleInsertChargeurModal.bind(this);
     this.toggleModifierChargeurModal = this.toggleModifierChargeurModal.bind(this);
-    this.toggleAssocierClientModal = this.toggleAssocierClientModal.bind(this);
+    this.toggleAssocierContratModal = this.toggleAssocierContratModal.bind(this);
     this.toggleInfoCompletModal = this.toggleInfoCompletModal.bind(this);
     this.toggleChangerStatutModal = this.toggleChangerStatutModal.bind(this);
     this.chargeursGestionFormatter = this.chargeursGestionFormatter.bind(this);
-    this.chargeursClientFormatter = this.chargeursClientFormatter.bind(this);
+    this.chargeursContratFormatter = this.chargeursContratFormatter.bind(this);
     this.chargeursStatutFormatter = this.chargeursStatutFormatter.bind(this);
     this.addChargeurData = this.addChargeurData.bind(this);
-    this.associerClient = this.associerClient.bind(this);
+    this.associerContrat = this.associerContrat.bind(this);
     this.changerStatut = this.changerStatut.bind(this);
     this.modifierChargeurData = this.modifierChargeurData.bind(this);
   }
@@ -217,13 +217,13 @@ export default class GestionDesChargeurs extends Component {
       console.error(error);
     });
   }
-  associerClient(){
+  associerContrat(){
     const queryMethod = "PUT";
-    const url = urlChargeurs + '/client';
+    const url = urlChargeurs + '/contrat';
     let data = {};
     data['id_chargeur'] = this.state.chargeurConcerne['id_chargeur'];
-    data['id_client'] = document.getElementById('id_client').value;
-    data['clientModalType'] = this.state.clientModalType;
+    data['id_contrat'] = document.getElementById('id_contrat').value;
+    data['contratModalType'] = this.state.contratModalType;
     fetch(url,{
       method: queryMethod,
       body: JSON.stringify(data),
@@ -236,7 +236,7 @@ export default class GestionDesChargeurs extends Component {
         if(response.status!==200){
           console.log("error");
           this.setState({
-            isAssocierClientSucess : false
+            isAssocierContratSucess : false
           })
         }else {
           fetch(urlChargeurs)
@@ -244,7 +244,7 @@ export default class GestionDesChargeurs extends Component {
           .then((responseJson)=>{
             this.setState({
               chargeursData : responseJson,
-              isAssocierClientModal : !this.state.isAssocierClientModal
+              isAssocierContratModal : !this.state.isAssocierContratModal
             })
           })
           .catch((error) => {
@@ -283,13 +283,13 @@ export default class GestionDesChargeurs extends Component {
       chargeurConcerne : data
     });
   }
-  toggleAssocierClientModal(data,type){
-    console.log("toggleAssocierClientModal data",data,"type",type);
+  toggleAssocierContratModal(data,type){
+    console.log("toggleAssocierContratModal data",data,"type",type);
     this.setState({
-      isAssocierClientModal : !this.state.isAssocierClientModal,
-      isAssocierClientSuccess : true,
+      isAssocierContratModal : !this.state.isAssocierContratModal,
+      isAssocierContratSuccess : true,
       chargeurConcerne : data,
-      clientModalType : type
+      contratModalType : type
     });
   }
   toggleInfoCompletModal(data){
@@ -327,14 +327,14 @@ export default class GestionDesChargeurs extends Component {
       </div>
     );
   }
-  chargeursClientFormatter(cell,row){
+  chargeursContratFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleAssocierClientModal(row,1)}>Associer</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleAssocierContratModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierClientModal(row,2)}>Dissocier {cell}</button>
+        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierContratModal(row,2)}>Dissocier {cell}</button>
       );
     }
   }
@@ -485,12 +485,12 @@ export default class GestionDesChargeurs extends Component {
                         Statut
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="id_client"
+                        dataField="id_contrat"
                         dataSort
-                        dataFormat={ this.chargeursClientFormatter }
-                        filter={ { type: 'TextFilter', placeholder: "Client"} }
+                        dataFormat={ this.chargeursContratFormatter }
+                        filter={ { type: 'TextFilter', placeholder: "Contrat"} }
                         tdStyle = {{"textAlign" : "center"}}>
-                        Client
+                        Contrat
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
@@ -513,9 +513,9 @@ export default class GestionDesChargeurs extends Component {
             </TabContent>
           </div>
           {
-            this.state.isAssocierClientModal?
-            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierClientModal} toggle={this.toggleAssocierClientModal}>
-              <ModalHeader toggle={this.toggleAssocierClientModal}>{this.state.clientModalType===1?"Associer un Client":"Dissocier un Client"}</ModalHeader>
+            this.state.isAssocierContratModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierContratModal} toggle={this.toggleAssocierContratModal}>
+              <ModalHeader toggle={this.toggleAssocierContratModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
               <ModalBody>
                 <div>
                   <div className="form-group col-sm-12">
@@ -523,15 +523,15 @@ export default class GestionDesChargeurs extends Component {
                     <input type="text" className="form-control" id="id_chargeur" placeholder="Chargeur ID" defaultValue = {this.state.chargeurConcerne["id_chargeur"]} disabled/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="id_client">Client ID</label>
-                    <input type="text" className="form-control" id="id_client" placeholder="Client ID" defaultValue = {this.state.clientModalType===1?null:this.state.chargeurConcerne["id_client"]} disabled={this.state.clientModalType!==1}/>
+                    <label htmlFor="id_contrat">Contrat ID</label>
+                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.contratModalType===1?null:this.state.chargeurConcerne["id_contrat"]} disabled={this.state.contratModalType!==1}/>
                   </div>
                 </div>
-                {!this.state.isAssocierClientSuccess?<span className="help-block text-danger">Error </span>:null}
+                {!this.state.isAssocierContratSuccess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.associerClient}>Submit</button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierClientModal}>Cancel</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.associerContrat}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
               </ModalFooter>
             </Modal>:null
           }
@@ -615,7 +615,7 @@ export default class GestionDesChargeurs extends Component {
                   </div>
                 </div>
                 <div>
-                  <div>Historique client</div>
+                  <div>Historique contrat</div>
                   <div>Historique des Chargeur ayant été rechargé</div>
                 </div>
               </ModalBody>

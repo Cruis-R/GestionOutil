@@ -42,7 +42,7 @@ export default class GestionDesScooters extends Component {
     this.state = {
       activeTab: '1',
       isInsertScooterModal : false,
-      isInsertScooterSucess : true,
+      isInsertScooterSuccess : true,
       isModifierScooterModal : false,
       isModifierScooterSuccess : true,
       isAssocierContratModal : false,
@@ -144,7 +144,7 @@ export default class GestionDesScooters extends Component {
         if(response.status!==200){
           console.log("error");
           this.setState({
-            isInsertScooterSucess : false
+            isInsertScooterSuccess : false
           })
         }else {
           fetch(urlScooters)
@@ -309,7 +309,8 @@ export default class GestionDesScooters extends Component {
   }
   toggleInsertScooterModal(){
     this.setState({
-      isInsertScooterModal : !this.state.isInsertScooterModal
+      isInsertScooterModal : !this.state.isInsertScooterModal,
+      isInsertScooterSuccess : true
     });
   }
   toggleAssocierContratModal(data,type){

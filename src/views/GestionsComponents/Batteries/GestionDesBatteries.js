@@ -18,7 +18,7 @@ const data = [{
   "cellule" : 150,
   "nb_cycles" : 2000,
   "identifiant" : "0001",
-  "client" : "CruisR"
+  "contrat" : "CruisR"
 },{
   "id_batterie" : 1,
   "num_cruisrent" : "34",
@@ -64,12 +64,12 @@ export default class GestionDesBatteries extends Component {
       isInsertBatterieSuccess : true,
       isModifierBatterieModal : false,
       isModifierBatterieSuccess : true,
-      isAssocierClientModal : false,
-      isAssocierClientSuccess : true,
+      isAssocierContratModal : false,
+      isAssocierContratSuccess : true,
       isInfoCompletModal : false,
       isChangerStatutModal : false,
       isChangerStatutSuccess : true,
-      clientModalType : 1,
+      contratModalType : 1,
       batterieConcerne : {},
       batteriesData : [],
       statutsClesData : []
@@ -77,14 +77,14 @@ export default class GestionDesBatteries extends Component {
     this.toggle = this.toggle.bind(this);
     this.toggleInsertBatterieModal = this.toggleInsertBatterieModal.bind(this);
     this.toggleModifierBatterieModal = this.toggleModifierBatterieModal.bind(this);
-    this.toggleAssocierClientModal = this.toggleAssocierClientModal.bind(this);
+    this.toggleAssocierContratModal = this.toggleAssocierContratModal.bind(this);
     this.toggleInfoCompletModal = this.toggleInfoCompletModal.bind(this);
     this.toggleChangerStatutModal = this.toggleChangerStatutModal.bind(this);
     this.batteriesGestionFormatter = this.batteriesGestionFormatter.bind(this);
-    this.batteriesClientFormatter = this.batteriesClientFormatter.bind(this);
+    this.batteriesContratFormatter = this.batteriesContratFormatter.bind(this);
     this.batteriesStatutFormatter = this.batteriesStatutFormatter.bind(this);
     this.addBatterieData = this.addBatterieData.bind(this);
-    this.associerClient = this.associerClient.bind(this);
+    this.associerContrat = this.associerContrat.bind(this);
     this.changerStatut = this.changerStatut.bind(this);
     this.modifierBatterieData = this.modifierBatterieData.bind(this);
   }
@@ -133,13 +133,13 @@ export default class GestionDesBatteries extends Component {
       batterieConcerne : data
     });
   }
-  toggleAssocierClientModal(data,type){
-    console.log("toggleAssocierClientModal data",data,"type",type);
+  toggleAssocierContratModal(data,type){
+    console.log("toggleAssocierContratModal data",data,"type",type);
     this.setState({
-      isAssocierClientModal : !this.state.isAssocierClientModal,
-      isAssocierClientSuccess : true,
+      isAssocierContratModal : !this.state.isAssocierContratModal,
+      isAssocierContratSuccess : true,
       batterieConcerne : data,
-      clientModalType : type
+      contratModalType : type
     });
   }
   toggleInfoCompletModal(data){
@@ -296,13 +296,13 @@ export default class GestionDesBatteries extends Component {
       console.error(error);
     });
   }
-  associerClient(){
+  associerContrat(){
     const queryMethod = "PUT";
-    const url = urlBatteries + '/client';
+    const url = urlBatteries + '/contrat';
     let data = {};
     data['id_batterie'] = this.state.batterieConcerne['id_batterie'];
-    data['id_client'] = document.getElementById('id_client').value;
-    data['clientModalType'] = this.state.clientModalType;
+    data['id_contrat'] = document.getElementById('id_contrat').value;
+    data['contratModalType'] = this.state.contratModalType;
     fetch(url,{
       method: queryMethod,
       body: JSON.stringify(data),
@@ -315,7 +315,7 @@ export default class GestionDesBatteries extends Component {
         if(response.status!==200){
           console.log("error");
           this.setState({
-            isAssocierClientSucess : false
+            isAssocierContratSucess : false
           })
         }else {
           fetch(urlBatteries)
@@ -323,7 +323,7 @@ export default class GestionDesBatteries extends Component {
           .then((responseJson)=>{
             this.setState({
               batteriesData : responseJson,
-              isAssocierClientModal : !this.state.isAssocierClientModal
+              isAssocierContratModal : !this.state.isAssocierContratModal
             })
           })
           .catch((error) => {
@@ -357,14 +357,14 @@ export default class GestionDesBatteries extends Component {
       </div>
     );
   }
-  batteriesClientFormatter(cell,row){
+  batteriesContratFormatter(cell,row){
     if(!cell){
       return (
-        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleAssocierClientModal(row,1)}>Associer</button>
+        <button type="button" className="btn btn-success btn-sm col-sm-12" onClick={()=>this.toggleAssocierContratModal(row,1)}>Associer</button>
       );
     }else {
       return (
-        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierClientModal(row,2)}>Dissocier {cell}</button>
+        <button type="button" className="btn btn-danger btn-sm col-sm-12" onClick={()=>this.toggleAssocierContratModal(row,2)}>Dissocier {cell}</button>
       );
     }
   }
@@ -539,12 +539,12 @@ export default class GestionDesBatteries extends Component {
                         Statut
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="id_client"
+                        dataField="id_contrat"
                         dataSort
-                        dataFormat={ this.batteriesClientFormatter }
-                        filter={ { type: 'TextFilter', placeholder: "Client"} }
+                        dataFormat={ this.batteriesContratFormatter }
+                        filter={ { type: 'TextFilter', placeholder: "Contrat"} }
                         tdStyle = {{"textAlign" : "center"}}>
-                        Client
+                        Contrat
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
@@ -567,9 +567,9 @@ export default class GestionDesBatteries extends Component {
             </TabContent>
           </div>
           {
-            this.state.isAssocierClientModal?
-            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierClientModal} toggle={this.toggleAssocierClientModal}>
-              <ModalHeader toggle={this.toggleAssocierClientModal}>{this.state.clientModalType===1?"Associer un Client":"Dissocier un Client"}</ModalHeader>
+            this.state.isAssocierContratModal?
+            <Modal className='modal-lg modal-info' isOpen={this.state.isAssocierContratModal} toggle={this.toggleAssocierContratModal}>
+              <ModalHeader toggle={this.toggleAssocierContratModal}>{this.state.contratModalType===1?"Associer un Contrat":"Dissocier un Contrat"}</ModalHeader>
               <ModalBody>
                 <div>
                   <div className="form-group col-sm-12">
@@ -577,15 +577,15 @@ export default class GestionDesBatteries extends Component {
                     <input type="text" className="form-control" id="id_batterie" placeholder="Batterie ID" defaultValue = {this.state.batterieConcerne["id_batterie"]} disabled/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="id_client">Client ID</label>
-                    <input type="text" className="form-control" id="id_client" placeholder="Client ID" defaultValue = {this.state.clientModalType===1?null:this.state.batterieConcerne["id_client"]} disabled={this.state.clientModalType!==1}/>
+                    <label htmlFor="id_contrat">Contrat ID</label>
+                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.contratModalType===1?null:this.state.batterieConcerne["id_contrat"]} disabled={this.state.contratModalType!==1}/>
                   </div>
                 </div>
-                {!this.state.isAssocierClientSuccess?<span className="help-block text-danger">Error </span>:null}
+                {!this.state.isAssocierContratSuccess?<span className="help-block text-danger">Error </span>:null}
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.associerClient}>Submit</button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierClientModal}>Cancel</button>
+                <button type="button" className="btn btn-sm btn-success" onClick={this.associerContrat}>Submit</button>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAssocierContratModal}>Cancel</button>
               </ModalFooter>
             </Modal>:null
           }
@@ -760,7 +760,7 @@ export default class GestionDesBatteries extends Component {
 
                 </div>
                 <div>
-                  <div>Historique client</div>
+                  <div>Historique contrat</div>
                   <div>Historique statut</div>
                   <div>Historique maintenances</div>
                 </div>

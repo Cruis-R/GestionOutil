@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
@@ -16,7 +17,6 @@ export default class GestionDesFacturations extends Component {
       isInsertFacturationSuccess : true,
       isModifierFacturationModal : false,
       isModifierFacturationSuccess : true,
-      isImprimier : false,
       facturationConcerne : null,
       facturationsData : [],
       clientsData : []
@@ -24,8 +24,10 @@ export default class GestionDesFacturations extends Component {
     this.toggle = this.toggle.bind(this);
     this.toggleInsertFacturationModal = this.toggleInsertFacturationModal.bind(this);
     this.toggleModifierFacturationModal = this.toggleModifierFacturationModal.bind(this);
-    this.toggleImprimierModal = this.toggleImprimierModal.bind(this);
     this.facturationsGestionFormatter = this.facturationsGestionFormatter.bind(this);
+    this.facturationsInsertButton = this.facturationsInsertButton.bind(this);
+    this.numeroFacturationGenerator = this.numeroFacturationGenerator.bind(this);
+    this.addFacturationData = this.addFacturationData.bind(this);
   }
   componentDidMount(){
     this.getData();
@@ -52,6 +54,46 @@ export default class GestionDesFacturations extends Component {
       console.error(error);
     });
   }
+  addFacturationData(){
+    const queryMethod = "POST";
+    let data = {};
+    data['num_facture']=document.getElementById("num_facture").value?document.getElementById("num_facture").value:null
+    data['id_client']=document.getElementById("id_client").value?document.getElementById("id_client").value:null
+    data['designation']=document.getElementById("designation").value?document.getElementById("designation").value:null
+    data['date_facturation']=document.getElementById("date_facturation").value?document.getElementById("date_facturation").value:null
+    fetch(urlFacturations,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isInsertFacturationSuccess : false
+          })
+        }else {
+          fetch(urlFacturations)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              facturationsData : responseJson,
+              isInsertFacturationModal : !this.state.isInsertFacturationModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -72,17 +114,11 @@ export default class GestionDesFacturations extends Component {
       isInsertFacturationSuccess : true
     });
   }
-  toggleImprimierModal(data){
-    this.setState({
-      isImprimier : !this.state.isImprimier,
-      facturationConcerne : data
-    });
-  }
   facturationsGestionFormatter(cell,row){
     return (
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-6" onClick={()=>this.toggleModifierFacturationModal(row)}>Modifier</button>
-        <button type="button" className="btn btn-info btn-sm col-sm-6" onClick={()=>this.toggleImprimierModal(row)}>Imprimier</button>
+        <Link target="_blank" to={'/facture?id='+row["id_facture"]}  className="text-white"><button type="button" className="btn btn-info btn-sm col-sm-6">Imprimier</button></Link>
       </div>
     );
   }
@@ -95,6 +131,12 @@ export default class GestionDesFacturations extends Component {
     let t = cell?new Date(cell).toISOString().split('T')[0]:null;
     return t;
   }
+  numeroFacturationGenerator(){
+    let t = new Date();
+    let num = ((this.state.facturationsData.length+1)/10000).toString().split('.')[1];
+    let numeroString = t.toISOString().split('T')[0].replace(/\-/g,'').slice(2,8)+num;
+    return numeroString;
+  }
   facturationsInsertButton = () => {
     return (
       <div>
@@ -104,88 +146,39 @@ export default class GestionDesFacturations extends Component {
           <ModalBody>
             <div>
               <div className="row">
-                <div className="form-group col-sm-6">
-                  <label htmlFor="id_facturation">N° Facture</label>
-                  <input type="text" className="form-control" id="id_facturation" placeholder="N° Facture"/>
-                </div>
-                <div className="form-group col-sm-6">
-                  <label htmlFor="niveau_assurance">N° Contrat</label>
-                  <input type="text" className="form-control" id="id_contrat" placeholder="N° Contrat"/>
+                <div className="form-group col-sm-12">
+                  <label htmlFor="num_facture">N° Facturation</label>
+                  <input type="text" className="form-control" id="num_facture" placeholder="N° Facturation" defaultValue={this.numeroFacturationGenerator()}/>
                 </div>
                 <div className="form-group col-sm-12">
-                  <label htmlFor="annexe_scooter">Total HT</label>
-                  <input type="text" className="form-control" id="totalht" placeholder="totalht"/>
+                  <label htmlFor="id_client">N° Client</label>
+                  <select className="form-control" id="id_client" placeholder="N° Client" defaultValue='selectionner un client'>
+                    <option disabled value='selectionner un client'> -- selectionner un client -- </option>
+                    {
+                      this.state.clientsData.map((instance,index)=>{
+                        return <option value={instance['id_client']}>{'ID: '+instance['id_client']+'\t'+instance['societe']}</option>
+                      })
+                    }
+                  </select>
                 </div>
                 <div className="form-group col-sm-12">
-                  <label htmlFor="annexe_scooter">Désignation</label>
+                  <label htmlFor="designation">Désignation</label>
                   <input type="text" className="form-control" id="designation" placeholder="Désignation"/>
                 </div>
                 <div className="form-group col-sm-12">
-                  <label htmlFor="datedebut">Date de Facturation</label>
-                  <input type="date" className="form-control" id="date_facture" placeholder="Date de Facturation"/>
+                  <label htmlFor="date_facturation">Date de Facturation</label>
+                  <input type="date" className="form-control" id="date_facturation" placeholder="Date de Facturation"/>
                 </div>
               </div>
             </div>
+            {!this.state.isInsertFacturationSuccess?<span className="help-block text-danger">Error </span>:null}
           </ModalBody>
           <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertFacturationModal}>Submit</button>
+            <button type="button" className="btn btn-sm btn-success" onClick={this.addFacturationData}>Submit</button>
             <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertFacturationModal}>Cancel</button>
           </ModalFooter>
         </Modal>
       </div>
-    );
-  }
-  typeFacturationsInsertButton = () => {
-    return (
-      <div>
-        <button type="button" className="btn btn-info btn-md" onClick={this.toggleInsertTypeFacturationModal}>Ajouter un Nouveau TypeFacturation</button>
-        <Modal isOpen={this.state.isInsertTypeFacturationModal} toggle={this.toggleInsertTypeFacturationModal}>
-          <ModalHeader toggle={this.toggleInsertTypeFacturationModal}>Ajouter un Nouveau TypeFacturation</ModalHeader>
-          <ModalBody>
-            <div>
-              <div className="row">
-                <div className="form-group col-sm-6">
-                  <label htmlFor="id_type_facturation">Facturation ID</label>
-                  <input type="text" className="form-control" id="id_type_facturation" placeholder="Facturation Type ID"/>
-                </div>
-                <div className="form-group col-sm-6">
-                  <label htmlFor="nom">Nom</label>
-                  <input type="text" className="form-control" id="nom" placeholder="Nom"/>
-                </div>
-              </div>
-              <div className="row">
-                <div className="form-group col-sm-12">
-                  <label htmlFor="description">Description</label>
-                  <input type="text" className="form-control" id="description" placeholder="Description"/>
-                </div>
-              </div>
-              <div className="form-group">
-                <label htmlFor="niveau_service">Niveau Service</label>
-                <input type="text" className="form-control" id="niveau_service" placeholder="Niveau Service"/>
-              </div>
-              <div className="row">
-                <div className="form-group col-sm-4">
-                  <label htmlFor="durée">Durée</label>
-                  <input type="text" className="form-control" id="durée" placeholder="Durée"/>
-                </div>
-                <div className="form-group col-sm-4">
-                  <label htmlFor="tarifmensuel">Mensualité</label>
-                  <input type="text" className="form-control" id="tarifmensuel" placeholder="Mensualité"/>
-                </div>
-                <div className="form-group col-sm-4">
-                  <label htmlFor="assurance_rc">Assurance</label>
-                  <input type="text" className="form-control" id="assurance_rc" placeholder="Assurance"/>
-                </div>
-              </div>
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInsertTypeFacturationModal}>Submit</button>
-            <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInsertTypeFacturationModal}>Cancel</button>
-          </ModalFooter>
-        </Modal>
-      </div>
-
     );
   }
   createCustomToolBar = props => {
@@ -220,7 +213,7 @@ export default class GestionDesFacturations extends Component {
                 <NavLink
                   className={classnames({ active: this.state.activeTab === '1' })}
                   onClick={() => { this.toggle('1'); }}>
-                  Les Factures
+                  Les Facturations
                 </NavLink>
               </NavItem>
               <NavItem>
@@ -252,29 +245,26 @@ export default class GestionDesFacturations extends Component {
                       <TableHeaderColumn
                         dataField="num_facture"
                         dataSort>
-                        Numéro de Facture
+                        N° Facturation
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="id_contrat"
+                        dataField="id_client"
                         dataSort>
-                        ID Contrat
+                        N° Client
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="societe"
-                        dataSort
-                        dataFormat={this.clientFormatter}>
+                        dataSort>
                         Société
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="cp"
-                        dataSort
-                        dataFormat={this.clientFormatter}>
+                        dataSort>
                         CP
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="ville"
                         dataSort
-                        dataFormat={this.clientFormatter}
                         width='170px'>
                         Ville
                       </TableHeaderColumn>
@@ -297,10 +287,10 @@ export default class GestionDesFacturations extends Component {
                         TTC
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="date_facture"
+                        dataField="date_facturation"
                         dataFormat={this.dateFormatter}
                         dataSort>
-                        Date de facture
+                        Date de facturation
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
@@ -325,24 +315,24 @@ export default class GestionDesFacturations extends Component {
               <div>
                 <div className="row">
                   <div className="form-group col-sm-6">
-                    <label htmlFor="id_facturation">N° Facture</label>
-                    <input type="text" className="form-control" id="id_facturation" placeholder="N° Facture"/>
+                    <label htmlFor="id_facture">N° Facturation</label>
+                    <input type="text" className="form-control" id="id_facture" placeholder="N° Facturation"/>
                   </div>
                   <div className="form-group col-sm-6">
-                    <label htmlFor="niveau_assurance">N° Contrat</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="N° Contrat"/>
+                    <label htmlFor="num_facture">N° Facturation</label>
+                    <input type="text" className="form-control" id="num_facture" placeholder="N° Facturation"/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="annexe_scooter">Total HT</label>
+                    <label htmlFor="totalht">Total HT</label>
                     <input type="text" className="form-control" id="totalht" placeholder="totalht"/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="annexe_scooter">Désignation</label>
+                    <label htmlFor="designation">Désignation</label>
                     <input type="text" className="form-control" id="designation" placeholder="Désignation"/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="datedebut">Date de Facturation</label>
-                    <input type="date" className="form-control" id="date_facture" placeholder="Date de Facturation"/>
+                    <label htmlFor="date_facturation">Date de Facturation</label>
+                    <input type="date" className="form-control" id="date_facturation" placeholder="Date de Facturation"/>
                   </div>
                 </div>
               </div>
