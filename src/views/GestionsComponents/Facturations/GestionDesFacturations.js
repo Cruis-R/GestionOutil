@@ -19,7 +19,8 @@ export default class GestionDesFacturations extends Component {
       isModifierFacturationSuccess : true,
       facturationConcerne : null,
       facturationsData : [],
-      clientsData : []
+      clientsData : [],
+      numFacture : null
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertFacturationModal = this.toggleInsertFacturationModal.bind(this);
@@ -28,6 +29,8 @@ export default class GestionDesFacturations extends Component {
     this.facturationsInsertButton = this.facturationsInsertButton.bind(this);
     this.numeroFacturationGenerator = this.numeroFacturationGenerator.bind(this);
     this.addFacturationData = this.addFacturationData.bind(this);
+    this.modifierFacturationData = this.modifierFacturationData.bind(this);
+    this.getNumFacture = this.getNumFacture.bind(this);
   }
   componentDidMount(){
     this.getData();
@@ -54,13 +57,26 @@ export default class GestionDesFacturations extends Component {
       console.error(error);
     });
   }
+  getNumFacture(){
+    fetch(urlFacturations+'/num_facture')
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      console.log("numFacture",responseJson[1]?responseJson[1][0]?responseJson[1][0]['num_facture']:null:null);
+      this.setState({
+        numFacture : responseJson[1]?responseJson[1][0]?responseJson[1][0]['num_facture']:null:null
+      })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   addFacturationData(){
     const queryMethod = "POST";
     let data = {};
     data['num_facture']=document.getElementById("num_facture").value?document.getElementById("num_facture").value:null
     data['id_client']=document.getElementById("id_client").value?document.getElementById("id_client").value:null
     data['designation']=document.getElementById("designation").value?document.getElementById("designation").value:null
-    data['date_facturation']=document.getElementById("date_facturation").value?document.getElementById("date_facturation").value:null
+    data['date_facture']=document.getElementById("date_facture").value?document.getElementById("date_facture").value:null
     fetch(urlFacturations,{
       method: queryMethod,
       body: JSON.stringify(data),
@@ -94,6 +110,48 @@ export default class GestionDesFacturations extends Component {
       console.error(error);
     });
   }
+  modifierFacturationData(){
+    const queryMethod = "PUT";
+    let data = {};
+    data['num_facture']=document.getElementById("num_facture").value?document.getElementById("num_facture").value:null;
+    data['designation']=document.getElementById("designation").value?document.getElementById("designation").value:null;
+    data['date_facture']=document.getElementById("date_facture").value?document.getElementById("date_facture").value:null;
+    data["totalht"]=document.getElementById("totalht").value?document.getElementById("totalht").value:null;
+    data["tva"]=document.getElementById("tva").value?document.getElementById("tva").value:null;
+    data["id_facture"]=this.state.facturationConcerne['id_facture'];
+    fetch(urlFacturations,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	})
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isModifierFacturationSuccess : false
+          })
+        }else {
+          fetch(urlFacturations)
+          .then((response) => response.json())
+          .then((responseJson)=>{
+            this.setState({
+              facturationsData : responseJson,
+              isModifierFacturationModal : !this.state.isModifierFacturationModal
+            })
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -109,6 +167,9 @@ export default class GestionDesFacturations extends Component {
     });
   }
   toggleInsertFacturationModal(){
+    if (!this.state.isInsertFacturationModal) {
+      this.getNumFacture();
+    }
     this.setState({
       isInsertFacturationModal : !this.state.isInsertFacturationModal,
       isInsertFacturationSuccess : true
@@ -148,7 +209,7 @@ export default class GestionDesFacturations extends Component {
               <div className="row">
                 <div className="form-group col-sm-12">
                   <label htmlFor="num_facture">N° Facturation</label>
-                  <input type="text" className="form-control" id="num_facture" placeholder="N° Facturation" defaultValue={this.numeroFacturationGenerator()}/>
+                  <input type="text" className="form-control" id="num_facture" placeholder="N° Facturation" value={this.state.numFacture}/>
                 </div>
                 <div className="form-group col-sm-12">
                   <label htmlFor="id_client">N° Client</label>
@@ -166,8 +227,8 @@ export default class GestionDesFacturations extends Component {
                   <input type="text" className="form-control" id="designation" placeholder="Désignation"/>
                 </div>
                 <div className="form-group col-sm-12">
-                  <label htmlFor="date_facturation">Date de Facturation</label>
-                  <input type="date" className="form-control" id="date_facturation" placeholder="Date de Facturation"/>
+                  <label htmlFor="date_facture">Date de Facturation</label>
+                  <input type="date" className="form-control" id="date_facture" placeholder="Date de Facture"/>
                 </div>
               </div>
             </div>
@@ -287,10 +348,10 @@ export default class GestionDesFacturations extends Component {
                         TTC
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="date_facturation"
+                        dataField="date_facture"
                         dataFormat={this.dateFormatter}
                         dataSort>
-                        Date de facturation
+                        Date de facture
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
@@ -315,30 +376,47 @@ export default class GestionDesFacturations extends Component {
               <div>
                 <div className="row">
                   <div className="form-group col-sm-6">
-                    <label htmlFor="id_facture">N° Facturation</label>
-                    <input type="text" className="form-control" id="id_facture" placeholder="N° Facturation"/>
+                    <label htmlFor="id_facture">ID Facturation</label>
+                    <input type="text" className="form-control" id="id_facture" placeholder="ID Facturation" disabled defaultValue={this.state.facturationConcerne['id_facture']}/>
                   </div>
                   <div className="form-group col-sm-6">
                     <label htmlFor="num_facture">N° Facturation</label>
-                    <input type="text" className="form-control" id="num_facture" placeholder="N° Facturation"/>
-                  </div>
-                  <div className="form-group col-sm-12">
-                    <label htmlFor="totalht">Total HT</label>
-                    <input type="text" className="form-control" id="totalht" placeholder="totalht"/>
+                    <input type="text" className="form-control" id="num_facture" placeholder="N° Facturation" defaultValue={this.state.facturationConcerne['num_facture']}/>
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="designation">Désignation</label>
-                    <input type="text" className="form-control" id="designation" placeholder="Désignation"/>
+                    <input type="text" className="form-control" id="designation" placeholder="Désignation" defaultValue={this.state.facturationConcerne['designation']}/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="date_facturation">Date de Facturation</label>
-                    <input type="date" className="form-control" id="date_facturation" placeholder="Date de Facturation"/>
+                    <label htmlFor="totalht">Total HT</label>
+                    <div className="input-group">
+                      <input type="text" className="form-control" id="totalht" placeholder="totalht" defaultValue={this.state.facturationConcerne['totalht']}/>
+                      <span className="input-group-addon"><i className="fa fa-euro"></i></span>
+                    </div>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="totalht">TVA</label>
+                    <div className="input-group">
+                      <input type="text" className="form-control" id="tva" placeholder="totalht" defaultValue={this.state.facturationConcerne['tva']}/>
+                      <span className="input-group-addon"><i className="fa fa-euro"></i></span>
+                    </div>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="totalht">Total TTC</label>
+                    <div className="input-group">
+                      <input type="text" className="form-control" id="totalttc" placeholder="totalht" defaultValue={this.state.facturationConcerne['totalttc']}/>
+                      <span className="input-group-addon"><i className="fa fa-euro"></i></span>
+                    </div>
+                  </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="date_facture">Date de Facturation</label>
+                    <input type="date" className="form-control" id="date_facture" placeholder="Date de Facture" defaultValue={this.dateFormatter(this.state.facturationConcerne['date_facture'])}/>
                   </div>
                 </div>
               </div>
             </ModalBody>
             <ModalFooter>
-              <button type="button" className="btn btn-sm btn-success" onClick={this.toggleModifierFacturationModal}>Submit</button>
+              <button type="button" className="btn btn-sm btn-success" onClick={this.modifierFacturationData}>Submit</button>
               <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierFacturationModal}>Cancel</button>
             </ModalFooter>
           </Modal>:null
