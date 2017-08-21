@@ -36,6 +36,8 @@ const statut = {
 const urlStatuts = urls.statuts;
 const urlScooters = urls.scooters;
 const urlBoitiersAssocier = urls.boitiers_associer;
+const urlContratsAssocier = urls.contrats_associer;
+const urlScootersAssocier = urls.scooters_associer;
 export default class GestionDesScooters extends Component {
   constructor(props) {
     super(props);
@@ -57,7 +59,9 @@ export default class GestionDesScooters extends Component {
       scooterConcerne : {},
       scootersData : [],
       statutsData : [],
-      boitiersAssocier : []
+      boitiersAssocier : [],
+      contratsAssocier : [],
+      scootersAssocier : []
     }
     this.toggle = this.toggle.bind(this);
     this.toggleInsertScooterModal = this.toggleInsertScooterModal.bind(this);
@@ -102,12 +106,36 @@ export default class GestionDesScooters extends Component {
       console.error(error);
     });
   }
-  getAssocierData(){
+  getAssocierBoitierData(){
     fetch(urlBoitiersAssocier)
     .then((response) => response.json())
     .then((responseJson)=>{
       this.setState({
         boitiersAssocier : responseJson
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  getAssocierScooterData(){
+    fetch(urlScootersAssocier)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        scootersAssocier : responseJson
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  getAssocierContratData(){
+    fetch(urlContratsAssocier)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        contratsAssocier : responseJson
       });
     })
     .catch((error) => {
@@ -315,6 +343,9 @@ export default class GestionDesScooters extends Component {
   }
   toggleAssocierContratModal(data,type){
     console.log("toggleAssocierContratModal data",data,"type",type);
+    if(type===1){
+      this.getAssocierContratData();
+    }
     this.setState({
       isAssocierContratModal : !this.state.isAssocierContratModal,
       scooterConcerne : data,
@@ -326,7 +357,7 @@ export default class GestionDesScooters extends Component {
   toggleAssocierBoitierModal(data,type){
     console.log("toggleAssocierBoitierModal data",data,"type",type);
     if(type===1){
-      this.getAssocierData();
+      this.getAssocierBoitierData();
     }
     this.setState({
       isAssocierBoitierModal : !this.state.isAssocierBoitierModal,
@@ -359,6 +390,7 @@ export default class GestionDesScooters extends Component {
   }
   toggleAttribuerScooter(){
     console.log("AttribuerScooter");
+    this.getAssocierScooterData();
     this.setState({
       isAttribuerScooter : !this.state.isAttribuerScooter
     });
@@ -556,13 +588,29 @@ export default class GestionDesScooters extends Component {
       <button className='btn btn-warning' onClick={ onClick }>Clean</button>
     );
   }
+  renderSizePerPageDropDown = props => {
+    return (
+      <div className='btn-group'>
+        {
+          [ 5, 10, 15 ].map((n, idx) => {
+            const isActive = (n === props.currSizePerPage) ? 'active' : null;
+            return (
+              <button key={ idx } type='button' className={ `btn btn-info ${isActive}` } onClick={ () => props.changeSizePerPage(n) }>{ n }</button>
+            );
+          })
+        }
+      </div>
+    );
+  }
   render(){
     let cur = this;
     const optionsScooters = {
       insertBtn: this.scootersInsertButton,
       toolBar: this.createCustomToolBar,
       clearSearch: true,
-      clearSearchBtn : this.createCustomClearButton
+      clearSearchBtn : this.createCustomClearButton,
+      sizePerPageDropDown: this.renderSizePerPageDropDown,
+      sizePerPage: 5
     }
     return(
       <div className="animated fadeIn">
@@ -603,7 +651,8 @@ export default class GestionDesScooters extends Component {
                       data={ this.state.scootersData }
                       headerStyle = { { "backgroundColor" : "#63c2de" } }
                       insertRow
-                      search>
+                      search
+                      pagination>
 
                       <TableHeaderColumn
                         dataField="id_scooter"
@@ -678,7 +727,7 @@ export default class GestionDesScooters extends Component {
                       <select className="form-control" id="id_boitier" placeholder="id_boitier" key="id_boitier">
                       {
                         this.state.boitiersAssocier.length>0?this.state.boitiersAssocier.map((instance,index)=>{
-                          return <option  key={index+instance['id_boitier']} value={instance['id_boitier']}>{instance['id_boitier']}</option>
+                          return <option  key={index+instance['id_boitier']} value={instance['id_boitier']}>{'ID: '+instance['id_boitier']+'\tIMEI: '+instance['imei']}</option>
                         }):<option key="non_disponible">Non Boitier Disponible</option>
                       }
                       </select>:
@@ -707,7 +756,17 @@ export default class GestionDesScooters extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_contrat">Contrat ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.contratModalType===1?null:this.state.scooterConcerne["id_contrat"]} disabled={this.state.contratModalType!==1}/>
+                    {
+                      this.state.contratModalType===1?
+                      <select className="form-control" id="id_contrat" placeholder="id_contrat" key="id_contrat">
+                      {
+                        this.state.contratsAssocier.length>0?this.state.contratsAssocier.map((instance,index)=>{
+                          return <option  key={index+instance['id_contrat']} value={instance['id_contrat']}>{instance['id_contrat']+'\t'+instance['societe']}</option>
+                        }):<option key="non_disponible">Non Contrat Disponible</option>
+                      }
+                      </select>:
+                      <input type="text" className="form-control"  key="id_contrat" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.scooterConcerne["id_contrat"]} disabled/>
+                    }
                   </div>
                   {
                     this.state.contratModalType!==1?
@@ -733,7 +792,13 @@ export default class GestionDesScooters extends Component {
                           this.state.isAttribuerScooter?
                           <div>
                             <label htmlFor="statut">Nouveau Scooter ID</label>
-                            <input type="text" className="form-control" id="id_scooter_new" placeholder="Nouveau Scooter ID"/>
+                            <select className="form-control" id="id_scooter_new" placeholder="Nouveau Scooter ID">
+                            {
+                              this.state.scootersAssocier.map((instance,index)=>{
+                                return <option value={instance['id_scooter']}>{instance['id_scooter']}</option>
+                              })
+                            }
+                            </select>
                           </div>:null
                         }
                       </div>

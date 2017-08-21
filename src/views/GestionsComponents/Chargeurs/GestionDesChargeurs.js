@@ -37,6 +37,7 @@ const statut = {
 }
 const urlChargeurs = urls.chargeurs;
 const urlStatutsCles = urls.statutscles;
+const urlContratsAssocier = urls.contrats_associer;
 export default class GestionDesChargeurs extends Component {
   constructor(props) {
     super(props);
@@ -54,6 +55,7 @@ export default class GestionDesChargeurs extends Component {
       contratModalType : 1,
       chargeurConcerne : {},
       chargeursData : [],
+      contratsAssocier : [],
       statutsClesData : []
     }
     this.toggle = this.toggle.bind(this);
@@ -69,6 +71,7 @@ export default class GestionDesChargeurs extends Component {
     this.associerContrat = this.associerContrat.bind(this);
     this.changerStatut = this.changerStatut.bind(this);
     this.modifierChargeurData = this.modifierChargeurData.bind(this);
+    this.statutFormatter = this.statutFormatter.bind(this);
   }
   componentDidMount(){
     this.getData();
@@ -90,6 +93,18 @@ export default class GestionDesChargeurs extends Component {
       this.setState({
         chargeursData : responseJson
       })
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  getAssocierContratData(){
+    fetch(urlContratsAssocier)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        contratsAssocier : responseJson
+      });
     })
     .catch((error) => {
       console.error(error);
@@ -257,11 +272,16 @@ export default class GestionDesChargeurs extends Component {
       console.error(error);
     });
   }
-  getUTCDate(date){
-    if(date) return date.split('T')[0];
-    else {
-      return 'Unknown';
-    }
+  dateFormatter(cell, row) {
+    let t = cell?new Date(cell).toISOString().split('T')[0]:null;
+    return t;
+  }
+  statutFormatter(data){
+    let statut = null;
+    this.state.statutsClesData.map((instance)=>{
+      if(instance['id_statutcle']===data) statut = instance['lib_statutcle'];
+    })
+    return statut;
   }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
@@ -285,6 +305,7 @@ export default class GestionDesChargeurs extends Component {
   }
   toggleAssocierContratModal(data,type){
     console.log("toggleAssocierContratModal data",data,"type",type);
+    this.getAssocierContratData();
     this.setState({
       isAssocierContratModal : !this.state.isAssocierContratModal,
       isAssocierContratSuccess : true,
@@ -318,11 +339,7 @@ export default class GestionDesChargeurs extends Component {
     return (
       <div>
         <button type="button" className={classnames("btn btn-sm col-sm-12",{ "btn-success" : cell===1,"btn-info" : cell===2,"btn-warning" : cell===3})} onClick={()=>this.toggleChangerStatutModal(row)}>
-          {
-            this.state.statutsClesData.map((instance)=>{
-              if(instance['id_statutcle']===cell) return instance['lib_statutcle'];
-            })
-          }
+          {this.statutFormatter(cell)}
         </button>
       </div>
     );
@@ -524,7 +541,17 @@ export default class GestionDesChargeurs extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_contrat">Contrat ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.contratModalType===1?null:this.state.chargeurConcerne["id_contrat"]} disabled={this.state.contratModalType!==1}/>
+                    {
+                      this.state.contratModalType===1?
+                      <select className="form-control" id="id_contrat" placeholder="id_contrat" key="id_contrat">
+                      {
+                        this.state.contratsAssocier.length>0?this.state.contratsAssocier.map((instance,index)=>{
+                          return <option  key={index+instance['id_contrat']} value={instance['id_contrat']}>{instance['id_contrat']+'\t'+instance['societe']}</option>
+                        }):<option key="non_disponible">Non Contrat Disponible</option>
+                      }
+                      </select>:<input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.chargeurConcerne["id_contrat"]} disabled/>
+
+                    }
                   </div>
                 </div>
                 {!this.state.isAssocierContratSuccess?<span className="help-block text-danger">Error </span>:null}
@@ -546,7 +573,7 @@ export default class GestionDesChargeurs extends Component {
                     <input type="text" className="form-control" id="id_chargeur" placeholder="Chargeur ID" defaultValue = {this.state.chargeurConcerne["id_chargeur"]} disabled/>
                   </div>
                   <div className="form-group col-sm-12">
-                    <label htmlFor="id_contrat">Statut</label>
+                    <label htmlFor="statut">Statut</label>
                     <select className="form-control" id="statut" placeholder="Statut">
                     {
                       this.state.statutsClesData.map((instance,index)=>{
@@ -581,7 +608,7 @@ export default class GestionDesChargeurs extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.chargeurConcerne["date_production"]}</div>
+                        <div>{this.dateFormatter(this.state.chargeurConcerne["date_production"])}</div>
                         <small className="text-muted">Date de Production</small>
                       </div>
                     </div>
@@ -589,7 +616,7 @@ export default class GestionDesChargeurs extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.chargeurConcerne["date_acquisition"]}</div>
+                        <div>{this.dateFormatter(this.state.chargeurConcerne["date_acquisition"])}</div>
                         <small className="text-muted">Date d&#39;Acquisition</small>
                       </div>
                     </div>
@@ -597,19 +624,19 @@ export default class GestionDesChargeurs extends Component {
                   <div className="col-sm-6 col-lg-3">
                     <div className="card">
                       <div className="card-block">
-                        <div>{this.state.chargeurConcerne["date_ajout"]}</div>
+                        <div>{this.dateFormatter(this.state.chargeurConcerne["date_ajout"])}</div>
                         <small className="text-muted">Date d&#39;Ajout</small>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="card-group">
-                  <div className={classnames("card card-inverse",{ "card-success" : this.state.chargeurConcerne["statut"]==='1',"card-info" : this.state.chargeurConcerne["statut"]==='2',"card-warning" : this.state.chargeurConcerne["statut"]==='3'})}>
+                  <div className={classnames("card card-inverse",{ "card-success" : this.state.chargeurConcerne["statut"]===1,"card-info" : this.state.chargeurConcerne["statut"]===2,"card-warning" : this.state.chargeurConcerne["statut"]===3})}>
                     <div className="card-block">
                       <div className="h1 text-muted text-right mb-2">
                         <i className="icon-speedometer"></i>
                       </div>
-                      <div className="h4 mb-0">{statut[this.state.chargeurConcerne["statut"]]}</div>
+                      <div className="h4 mb-0">{this.statutFormatter(this.state.chargeurConcerne["statut"])}</div>
                       <small className="text-muted text-uppercase font-weight-bold">Statut</small>
                     </div>
                   </div>
@@ -633,15 +660,15 @@ export default class GestionDesChargeurs extends Component {
                   <div className="row">
                     <div className="form-group col-sm-12">
                       <label htmlFor="date_production">Date de Production</label>
-                      <input type="date" className="form-control" id="date_production" placeholder="Date de Production" defaultValue = {this.getUTCDate(this.state.chargeurConcerne["date_production"])}/>
+                      <input type="date" className="form-control" id="date_production" placeholder="Date de Production" defaultValue = {this.dateFormatter(this.state.chargeurConcerne["date_production"])}/>
                     </div>
                     <div className="form-group col-sm-12">
                       <label htmlFor="date_acquisition">Date d&#39;acquisition</label>
-                      <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition" defaultValue = {this.getUTCDate(this.state.chargeurConcerne["date_acquisition"])}/>
+                      <input type="date" className="form-control" id="date_acquisition" placeholder="Date d'acquisition" defaultValue = {this.dateFormatter(this.state.chargeurConcerne["date_acquisition"])}/>
                     </div>
                     <div className="form-group col-sm-12">
                       <label htmlFor="date_ajout">Date d&#39;ajout</label>
-                      <input type="date" className="form-control" id="date_ajout" placeholder="Date d'ajout" defaultValue = {this.getUTCDate(this.state.chargeurConcerne["date_ajout"])}/>
+                      <input type="date" className="form-control" id="date_ajout" placeholder="Date d'ajout" defaultValue = {this.dateFormatter(this.state.chargeurConcerne["date_ajout"])}/>
                     </div>
                     <div className="form-group col-sm-12">
                       <label htmlFor="identifiant">Identifiant</label>

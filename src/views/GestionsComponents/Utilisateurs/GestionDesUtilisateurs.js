@@ -412,37 +412,43 @@ export default class GestionDesUtilisateurs extends Component {
             <div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-user"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-user"></i></span>
+                  <span className="input-group-addon col-3">Username</span>
                   <input type="text" id="username" name="username" className="form-control" placeholder="Username"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-tag"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-tag"></i></span>
+                  <span className="input-group-addon col-3">Nom</span>
                   <input type="text" id="nom" name="nom" className="form-control" placeholder="Nom"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-tags"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-tags"></i></span>
+                  <span className="input-group-addon col-3">Prenom</span>
                   <input type="text" id="prenom" name="prenom" className="form-control" placeholder="Prenom"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className= {classnames("input-group", { 'has-danger': !this.state.isPasswordMatch })}>
-                  <span className="input-group-addon"><i className="fa fa-asterisk"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-asterisk"></i></span>
+                  <span className="input-group-addon col-3">Mot de Passe</span>
                   <input type="password" id="motdepasse" name="motdepasse" className="form-control" placeholder="Mot de Passe"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className= {classnames("input-group", { 'has-danger': !this.state.isPasswordMatch })}>
-                  <span className="input-group-addon"><i className="fa fa-gavel"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-gavel"></i></span>
+                  <span className="input-group-addon col-3">Confirmer</span>
                   <input type="password" id="confirmermotdepasse" name="confirmermotdepasse" className="form-control" placeholder="Confirmer Mot de Passe"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-archive"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-archive"></i></span>
+                  <span className="input-group-addon col-3">Profil</span>
                   <select className="form-control" id="profil" placeholder="Profil">
                   {
                     this.state.profilData.map((instance,index)=>{
@@ -454,19 +460,22 @@ export default class GestionDesUtilisateurs extends Component {
               </div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-suitcase"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-suitcase"></i></span>
+                  <span className="input-group-addon col-3">Société</span>
                   <input type="text" id="societe" name="societe" className="form-control" placeholder="Société"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-envelope"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-envelope"></i></span>
+                  <span className="input-group-addon col-3">Email</span>
                   <input type="email" id="email" name="email" className="form-control" placeholder="Email"/>
                 </div>
               </div>
               <div className="form-group">
                 <div className="input-group">
-                  <span className="input-group-addon"><i className="fa fa-phone"></i></span>
+                  <span className="input-group-addon col-1"><i className="fa fa-phone"></i></span>
+                  <span className="input-group-addon col-3">Tel</span>
                   <input type="tel" id="tel" name="tel" className="form-control" placeholder="Tel"/>
                 </div>
               </div>

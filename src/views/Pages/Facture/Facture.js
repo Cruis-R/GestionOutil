@@ -119,7 +119,6 @@ export default class Facture extends Component {
             </div>
           </div>
         </div>
-        ?&gt;
         <div className="facture_modalites">
           <p>ECHEANCE : <span>31/08/2017</span></p>
           <p>REGLEMENT : <span>Virement</span></p>

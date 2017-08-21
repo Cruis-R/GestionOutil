@@ -300,33 +300,38 @@ export default class GestionDesFacturations extends Component {
                       <TableHeaderColumn
                         dataField="id_facture"
                         isKey
-                        dataSort>
+                        dataSort
+                        width = "5%">
                         ID
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="num_facture"
-                        dataSort>
+                        dataSort
+                        width = "15%">
                         N° Facturation
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="id_client"
-                        dataSort>
+                        dataSort
+                        width = "5%">
                         N° Client
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="societe"
-                        dataSort>
+                        dataSort
+                        width = "10%">
                         Société
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="cp"
-                        dataSort>
+                        dataSort
+                        width = "7%">
                         CP
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField="ville"
                         dataSort
-                        width='170px'>
+                        width = "10%">
                         Ville
                       </TableHeaderColumn>
                       <TableHeaderColumn
@@ -350,14 +355,15 @@ export default class GestionDesFacturations extends Component {
                       <TableHeaderColumn
                         dataField="date_facture"
                         dataFormat={this.dateFormatter}
-                        dataSort>
+                        dataSort
+                        width = "10%">
                         Date de facture
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""
                         dataFormat={ this.facturationsGestionFormatter }
                         tdStyle={{textAlign : "center"}}
-                        width = "25%">
+                        width = "180px">
                         Gestion
                       </TableHeaderColumn>
                     </BootstrapTable>

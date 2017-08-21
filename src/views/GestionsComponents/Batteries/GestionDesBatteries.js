@@ -55,6 +55,7 @@ const statut = {
 }
 const urlBatteries = urls.batteries;
 const urlStatutsCles = urls.statutscles;
+const urlContratsAssocier = urls.contrats_associer;
 export default class GestionDesBatteries extends Component {
   constructor(props) {
     super(props);
@@ -72,6 +73,7 @@ export default class GestionDesBatteries extends Component {
       contratModalType : 1,
       batterieConcerne : {},
       batteriesData : [],
+      contratsAssocier : [],
       statutsClesData : []
     }
     this.toggle = this.toggle.bind(this);
@@ -113,6 +115,18 @@ export default class GestionDesBatteries extends Component {
       console.error(error);
     });
   }
+  getAssocierContratData(){
+    fetch(urlContratsAssocier)
+    .then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        contratsAssocier : responseJson
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -135,6 +149,7 @@ export default class GestionDesBatteries extends Component {
   }
   toggleAssocierContratModal(data,type){
     console.log("toggleAssocierContratModal data",data,"type",type);
+    this.getAssocierContratData();
     this.setState({
       isAssocierContratModal : !this.state.isAssocierContratModal,
       isAssocierContratSuccess : true,
@@ -578,7 +593,16 @@ export default class GestionDesBatteries extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="id_contrat">Contrat ID</label>
-                    <input type="text" className="form-control" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.contratModalType===1?null:this.state.batterieConcerne["id_contrat"]} disabled={this.state.contratModalType!==1}/>
+                    {
+                      this.state.contratModalType===1?
+                      <select className="form-control" id="id_contrat" placeholder="id_contrat" key="id_contrat">
+                      {
+                        this.state.contratsAssocier.length>0?this.state.contratsAssocier.map((instance,index)=>{
+                          return <option  key={index+instance['id_contrat']} value={instance['id_contrat']}>{instance['id_contrat']+'\t'+instance['societe']}</option>
+                        }):<option key="non_disponible">Non Contrat Disponible</option>
+                      }
+                    </select>:<input type="text" className="form-control"  key="id_contrat" id="id_contrat" placeholder="Contrat ID" defaultValue = {this.state.batterieConcerne["id_contrat"]} disabled/>
+                    }
                   </div>
                 </div>
                 {!this.state.isAssocierContratSuccess?<span className="help-block text-danger">Error </span>:null}

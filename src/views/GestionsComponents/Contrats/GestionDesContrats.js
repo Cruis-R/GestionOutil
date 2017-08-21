@@ -427,11 +427,27 @@ export default class GestionDesContrats extends Component {
       </div>
     );
   }
+  renderSizePerPageDropDown = props => {
+    return (
+      <div className='btn-group'>
+        {
+          [ 5, 10, 15 ].map((n, idx) => {
+            const isActive = (n === props.currSizePerPage) ? 'active' : null;
+            return (
+              <button key={ idx } type='button' className={ `btn btn-info ${isActive}` } onClick={ () => props.changeSizePerPage(n) }>{ n }</button>
+            );
+          })
+        }
+      </div>
+    );
+  }
   render(){
     let cur = this;
     const optionsContrats = {
       insertBtn: cur.contratsInsertButton,
-      toolBar: this.createCustomToolBar
+      toolBar: this.createCustomToolBar,
+      sizePerPageDropDown: this.renderSizePerPageDropDown,
+      sizePerPage: 5
     }
     const optionsTypeContrats = {
       insertBtn: cur.typeContratsInsertButton
@@ -467,7 +483,8 @@ export default class GestionDesContrats extends Component {
                       options = {optionsContrats}
                       data={ this.state.contratsData }
                       headerStyle = { { "backgroundColor" : "#63c2de" } }
-                      insertRow>
+                      insertRow
+                      pagination>
                       <TableHeaderColumn
                         dataField="id_contrat"
                         isKey
