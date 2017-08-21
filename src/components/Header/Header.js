@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Dropdown, DropdownMenu, DropdownItem } from 'reactstrap';
 
+const urlServer = "http://vps92599.ovh.net:8082/api/session";
 class Header extends Component {
 
   constructor(props) {
@@ -8,8 +9,10 @@ class Header extends Component {
 
     this.toggle = this.toggle.bind(this);
     this.state = {
-      dropdownOpen: false
+      dropdownOpen: false,
+      isLogoutSuccess : true
     };
+    this.logoutServerTraccar = this.logoutServerTraccar.bind(this)
   }
 
   toggle() {
@@ -38,6 +41,31 @@ class Header extends Component {
     document.body.classList.toggle('aside-menu-hidden');
   }
 
+  logoutServerTraccar(){
+    const queryMethod = "DELETE";
+    fetch(urlServer,{
+      credentials: 'include',
+      method: queryMethod,
+      headers: new Headers({
+        'Content-Type': 'application/x-www-form-urlencoded'
+      })
+    })
+    .then((response)=>{
+      if(response.status===204){
+        this.setState({
+          isLogoutSuccess:true
+        });
+        window.location.href = '#/';
+      }else {
+        this.setState({
+          isLogoutSuccess:false
+        });
+      }
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
+  }
   render() {
     return (
       <header className="app-header navbar">
@@ -90,7 +118,7 @@ class Header extends Component {
                 <DropdownItem><i className="fa fa-file"></i> Projects<span className="badge badge-primary">42</span></DropdownItem>
                 <DropdownItem divider />
                 <DropdownItem><i className="fa fa-shield"></i> Lock Account</DropdownItem>
-                <DropdownItem><i className="fa fa-lock"></i> Logout</DropdownItem>
+                <DropdownItem onClick={this.logoutServerTraccar}><i className="fa fa-lock"></i> Logout{!this.state.isLogoutSuccess?<span className="badge badge-danger">Error </span>:null}</DropdownItem>
 
               </DropdownMenu>
             </Dropdown>

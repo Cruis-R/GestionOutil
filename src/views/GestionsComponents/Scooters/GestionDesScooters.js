@@ -328,6 +328,20 @@ export default class GestionDesScooters extends Component {
       console.error(error);
     });
   }
+  getScooterReport(id){
+    console.log("getScooterReport");
+    const queryMethod = 'GET';
+    let dateFrom = new Date('2017-08').toISOString();
+    let dateTo = new Date('2017-09').toISOString();
+    let url = 'http://vps92599.ovh.net:8082/api/reports/summary?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
+    fetch(url,{
+      credentials: 'include'
+    })
+    .then((response)=>response.json())
+    .then((result)=>{
+        console.log("result",result);
+    })
+  }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -376,6 +390,9 @@ export default class GestionDesScooters extends Component {
   }
   toggleInfoCompletModal(data){
     console.log("toggleInfoCompletModal data",data);
+    if (!this.state.isInfoCompletModal) {
+      this.getScooterReport(data['id_scooter']);
+    }
     this.setState({
       isInfoCompletModal : !this.state.isInfoCompletModal,
       scooterConcerne : data
