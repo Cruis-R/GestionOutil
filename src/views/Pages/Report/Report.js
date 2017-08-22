@@ -68,7 +68,11 @@ const plugin = {
   }
 }
 const mainChartOpts = {
-  maintainAspectRatio: false
+  maintainAspectRatio: false,
+  tooltips: {
+            mode: 'nearest',
+            intersect : false
+        }
 }
 export default class Report extends Component {
   constructor(props) {
