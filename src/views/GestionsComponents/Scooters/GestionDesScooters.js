@@ -33,6 +33,21 @@ const statut = {
   3 : "Hors service",
   4 : "A récupérer"
 }
+const month_days = {
+  1 : 31,
+  2 : 28,
+  3 : 31,
+  4 : 30,
+  5 : 31,
+  6 : 30,
+  7 : 31,
+  8 : 31,
+  9 : 30,
+  10 : 31,
+  11 : 30,
+  12 : 31,
+  13 : 29
+}
 const urlStatuts = urls.statuts;
 const urlScooters = urls.scooters;
 const urlBoitiersAssocier = urls.boitiers_associer;
@@ -329,18 +344,108 @@ export default class GestionDesScooters extends Component {
     });
   }
   getScooterReport(id){
+    /*scooterPositionData :[],
+    scooterEventData :[],
+    scooterTripsData :[]
+    scooterStopsData :[]
+    scooterSummaryData :[]*/
     console.log("getScooterReport");
     const queryMethod = 'GET';
-    let dateFrom = new Date('2017-08').toISOString();
-    let dateTo = new Date('2017-09').toISOString();
-    let url = 'http://vps92599.ovh.net:8082/api/reports/summary?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
-    fetch(url,{
+    let date1 = new Date('2017-08');
+    let dateOrigin = new Date('2017-04');
+    let date2 = new Date('2017-09');
+    let dateFrom = date1.toISOString();
+    let dateFromOrigin = dateOrigin.toISOString();
+    let year = date1.getFullYear();
+    let month = year%4!==0?date1.getMonth()+1:13;
+    let dateTo = date2.toISOString();
+    let urlTrips = 'http://vps92599.ovh.net:8082/api/reports/trips?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
+    let urlStops = 'http://vps92599.ovh.net:8082/api/reports/stops?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
+    let urlSummary = 'http://vps92599.ovh.net:8082/api/reports/summary?deviceId='+id+'&from='+dateFromOrigin+'&to='+dateTo;
+    let urls = [urlSummary,urlTrips,urlStops];
+    var promises = urls.map(url =>
+      fetch(url,{
+        credentials: 'include'
+      }).then(y => y.json()));
+    Promise.all(promises).then(results => {
+      console.log('report',results);
+      let result_period = this.analyseTripsAndStops(results[1],results[2],month);
+      let career_info = (results[0][0]['distance']/1000).toFixed(2);
+      console.log('result_period',result_period);
+      console.log('career_info',career_info);
+    });
+    /*fetch(url,{
       credentials: 'include'
     })
     .then((response)=>response.json())
     .then((result)=>{
         console.log("result",result);
+    })*/
+  }
+  analyseTripsAndStops(trips,stops,month){
+    //data from trips
+    let dayNum = month_days[month];
+    let dayList = [];
+    let distancePerDay = [];//from trips /km
+    let timeUsagePerDay = [];//from tripTimePerDay + stopTimePerDay /seconds
+    let stopTimePerDay = [];//from stops /seconds
+    let tripsNumPerDay = [];//from trips /int
+    let tripTimePerDay = [];//from trips /seconds
+
+    for (var i = 0; i < dayNum; i++) {
+      dayList[i] = i+1;
+      distancePerDay[i] = 0;
+      timeUsagePerDay[i] = 0;
+      tripsNumPerDay[i] = 0;
+      tripTimePerDay[i] = 0;
+      stopTimePerDay[i] = 0;
+    }
+    trips.map((instance,index)=>{
+      let date1 = new Date(instance['startTime']);
+      let date2 = new Date(instance['endTime']);
+      let dayIndex = date1.getDate()-1;
+      let dayEndIndex = date2.getDate()-1;
+      if (dayIndex===dayEndIndex) {
+        distancePerDay[dayIndex] = distancePerDay[dayIndex]+(instance['distance']/1000);
+        tripsNumPerDay[dayIndex] = tripsNumPerDay[dayIndex] + 1;
+        tripTimePerDay[dayIndex] = tripTimePerDay[dayIndex]+(instance['duration']/1000);
+      }
+      //total km per day from trips
     })
+    stops.map((instance,index)=>{
+      let date1 = new Date(instance['startTime']);
+      let date2 = new Date(instance['endTime']);
+      let dayIndex = date1.getDate()-1;
+      let dayEndIndex = date2.getDate()-1;
+      if (dayIndex===dayEndIndex) {
+      //total km per day from trips
+        stopTimePerDay[dayIndex] = stopTimePerDay[dayIndex]+(instance['duration']/1000);
+      }
+    })
+    //calculate total
+    timeUsagePerDay.map((instance,index)=>{
+      timeUsagePerDay[index] = stopTimePerDay[index] + tripTimePerDay[index] // /hours
+    })
+    let timeUsageTotal = (timeUsagePerDay.reduce((a,b) => (a+b))/3600);
+    let totalDistance = distancePerDay.reduce((a,b) => (a+b));
+
+    //format to hours and kms with 2 point
+    timeUsagePerDay.map((instance,index)=>{
+      timeUsagePerDay[index] = (timeUsagePerDay[index]/3600).toFixed(2); // /hours
+    })
+    tripTimePerDay.map((instance,index)=>{
+      tripTimePerDay[index] = (tripTimePerDay[index]/3600).toFixed(2); // /hours
+    })
+    distancePerDay.map((instance,index)=>{
+      distancePerDay[index] = distancePerDay[index].toFixed(2); // /kms
+    })
+    stopTimePerDay.map((instance,index)=>{
+      stopTimePerDay[index] = (stopTimePerDay[index]/3600).toFixed(2); // /hours
+    })
+    let avgDistance = (totalDistance/distancePerDay.length).toFixed(2);
+    let avgTimeUsage = (timeUsageTotal/timeUsagePerDay.length).toFixed(2);
+    console.log('result analysis',distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal);
+    return [distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal.toFixed(2)]
   }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
@@ -390,13 +495,20 @@ export default class GestionDesScooters extends Component {
   }
   toggleInfoCompletModal(data){
     console.log("toggleInfoCompletModal data",data);
+    let date1 = new Date('2017-08');
+    let date2 = new Date('2017-09');
+    let id = data['id_scooter'];
+    let dateFrom = date1.toISOString();
+    let dateTo = date2.toISOString();
+    window.location.href='#/report?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
+    /*
     if (!this.state.isInfoCompletModal) {
       this.getScooterReport(data['id_scooter']);
     }
     this.setState({
       isInfoCompletModal : !this.state.isInfoCompletModal,
       scooterConcerne : data
-    });
+    });*/
   }
   toggleScooterContratModal(data){
     console.log("ScooterContrat data",data);
