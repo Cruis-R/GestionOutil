@@ -113,7 +113,7 @@ export default class Report extends Component {
       }).then(y => y.json()));
     Promise.all(promises).then(results => {
       let result_period = this.analyseTripsAndStops(results[1],results[2],dateFrom);
-      let career_info = (results[0][0]['distance']/1000).toFixed(2);
+      let career_info = (results[0][0]['distance']/1000).toFixed(1);
       let charts = this.generateChart([result_period[0],result_period[1],result_period[2],result_period[3]],result_period[7])
       this.setState({
         distancePerDay :result_period[0],
@@ -190,20 +190,20 @@ export default class Report extends Component {
 
     //format to hours and kms with 2 point
     timeUsagePerDay.map((instance,index)=>{
-      timeUsagePerDay[index] = (timeUsagePerDay[index]/60).toFixed(2); // /hours
+      timeUsagePerDay[index] = (timeUsagePerDay[index]/60).toFixed(1); // /hours
     })
     tripTimePerDay.map((instance,index)=>{
-      tripTimePerDay[index] = (tripTimePerDay[index]/60).toFixed(2); // /hours
+      tripTimePerDay[index] = (tripTimePerDay[index]/60).toFixed(1); // /hours
     })
     distancePerDay.map((instance,index)=>{
-      distancePerDay[index] = distancePerDay[index].toFixed(2); // /kms
+      distancePerDay[index] = distancePerDay[index].toFixed(1); // /kms
     })
     stopTimePerDay.map((instance,index)=>{
-      stopTimePerDay[index] = (stopTimePerDay[index]/60).toFixed(2); // /hours
+      stopTimePerDay[index] = (stopTimePerDay[index]/60).toFixed(1); // /hours
     })
-    let avgDistance = (totalDistance/daysInPeriod).toFixed(2);
-    let avgTimeUsage = (timeUsageTotal/daysInPeriod).toFixed(2);
-    return [distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal.toFixed(2),dayList]
+    let avgDistance = (totalDistance/daysInPeriod).toFixed(1);
+    let avgTimeUsage = (timeUsageTotal/daysInPeriod).toFixed(1);
+    return [distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal.toFixed(1),dayList]
   }
   generateChart(reportData,label){
     let distancePerDay = {
