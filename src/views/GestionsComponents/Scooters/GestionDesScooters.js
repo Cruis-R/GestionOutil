@@ -424,8 +424,11 @@ export default class GestionDesScooters extends Component {
   }
   toggleInfoCompletModal(data){
     if (!this.state.isInfoCompletModal) {
-      let date1 = new Date('2017-01');
-      let date2 = new Date('2017-02');
+      let monthIndex = new Date().getMonth();
+      let monthIndex2 = (parseInt(monthIndex)+1)%12;
+      let year = new Date().getFullYear();
+      let date1 = new Date(year+'-'+month_select[monthIndex]['id']);
+      let date2 = new Date(year+'-'+month_select[monthIndex2]['id']);
       let id = data['id_scooter'];
       let nom_scooter = data['num_cruisrent'];
       let dateFrom = date1.toISOString();
@@ -878,8 +881,7 @@ export default class GestionDesScooters extends Component {
                 <div className="row">
                   <div className="form-group col-sm-12">
                     <label htmlFor="rapport_mois">Selectionner le mois</label>
-                    <select className="form-control" id="rapport_mois" placeholder="Rapport Mois" onChange={(e)=>this.handleSelectRapportMois(e.target.value)}>
-                      <option disabled value='selectionner un mois'> -- selectionner un mois -- </option>
+                    <select className="form-control" id="rapport_mois" placeholder="Rapport Mois" defaultValue={new Date().getMonth()} onChange={(e)=>this.handleSelectRapportMois(e.target.value)}>
                       {
                         month_select.map((instance,index)=>{
                           return <option value={index}>{instance["nom"]}</option>
