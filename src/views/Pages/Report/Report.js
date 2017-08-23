@@ -84,7 +84,7 @@ export default class Report extends Component {
       tripsNumPerDay :[],
       avgDistance :0,
       avgTimeUsage :0,
-      timeUsageTotal :0,
+      totalTimeUsage :0,
       totalDistance :0,
       dataReady : false,
       dateFrom : null,
@@ -106,15 +106,18 @@ export default class Report extends Component {
     let urlTrips = 'http://vps92599.ovh.net:8082/api/reports/trips'+this.props.location.search;
     let urlStops = 'http://vps92599.ovh.net:8082/api/reports/stops'+this.props.location.search;
     let urlSummary = 'http://vps92599.ovh.net:8082/api/reports/summary?deviceId='+id+'&from='+dateFromOrigin+'&to='+dateTo.toISOString();
-    let urls = [urlSummary,urlTrips,urlStops];
+    let urlTripsAll = 'http://vps92599.ovh.net:8082/api/reports/trips?deviceId='+id+'&from='+dateFromOrigin+'&to='+dateTo.toISOString();
+    let urlStopsAll = 'http://vps92599.ovh.net:8082/api/reports/stops?deviceId='+id+'&from='+dateFromOrigin+'&to='+dateTo.toISOString();
+    let urls = [urlSummary,urlTrips,urlStops,urlTripsAll,urlStopsAll];
     var promises = urls.map(url =>
       fetch(url,{
         credentials: 'include'
       }).then(y => y.json()));
     Promise.all(promises).then(results => {
       let result_period = this.analyseTripsAndStops(results[1],results[2],dateFrom);
-      let career_info = (results[0][0]['distance']/1000).toFixed(1);
-      let charts = this.generateChart([result_period[0],result_period[1],result_period[2],result_period[3]],result_period[7])
+      let career_distance = (results[0][0]['distance']/1000).toFixed(1);
+      let career_time = this.getCareerTotalUsageTime(results[3],results[4]);
+      let charts = this.generateChart([result_period[0],result_period[1],result_period[2],result_period[3]],result_period[6]);
       this.setState({
         distancePerDay :result_period[0],
         timeUsagePerDay :result_period[1],
@@ -122,8 +125,8 @@ export default class Report extends Component {
         tripsNumPerDay :result_period[3],
         avgDistance :result_period[4],
         avgTimeUsage :result_period[5],
-        timeUsageTotal :result_period[6],
-        totalDistance :career_info,
+        totalTimeUsage :career_time,
+        totalDistance :career_distance,
         dataReady : true,
         dateFrom : dateFrom,
         dateTo : dateTo,
@@ -135,6 +138,31 @@ export default class Report extends Component {
         dataReady : false
       });
     });
+  }
+  getCareerTotalUsageTime(trips,stops){
+    let tripsTotal = 0;
+    let stopsTotal = 0;
+    trips.map((instance,index)=>{
+      let date1 = new Date(instance['startTime']);
+      let date2 = new Date(instance['endTime']);
+      let dayIndex = date1.getDate();
+      let dayEndIndex = date2.getDate();
+      if (dayIndex===dayEndIndex) {
+        tripsTotal = tripsTotal+(instance['duration']/1000);
+      }
+      //total km per day from trips
+    })
+    stops.map((instance,index)=>{
+      let date1 = new Date(instance['startTime']);
+      let date2 = new Date(instance['endTime']);
+      let dayIndex = date1.getDate();
+      let dayEndIndex = date2.getDate();
+      if (dayIndex===dayEndIndex) {
+      //total km per day from trips
+        stopsTotal = stopsTotal+(instance['duration']/1000);
+      }
+    })
+    return ((tripsTotal+stopsTotal)/60).toFixed(1);
   }
   analyseTripsAndStops(trips,stops,date){
     //data from trips
@@ -185,7 +213,7 @@ export default class Report extends Component {
     timeUsagePerDay.map((instance,index)=>{
       timeUsagePerDay[index] = stopTimePerDay[index] + tripTimePerDay[index] // /hours
     })
-    let timeUsageTotal = (timeUsagePerDay.reduce((a,b) => (a+b))/60);
+    let totalTimeUsage = (timeUsagePerDay.reduce((a,b) => (a+b))/60);
     let totalDistance = distancePerDay.reduce((a,b) => (a+b));
 
     //format to hours and kms with 2 point
@@ -202,8 +230,8 @@ export default class Report extends Component {
       stopTimePerDay[index] = (stopTimePerDay[index]/60).toFixed(1); // /hours
     })
     let avgDistance = (totalDistance/daysInPeriod).toFixed(1);
-    let avgTimeUsage = (timeUsageTotal/daysInPeriod).toFixed(1);
-    return [distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal.toFixed(1),dayList]
+    let avgTimeUsage = (totalTimeUsage/daysInPeriod).toFixed(1);
+    return [distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,dayList]
   }
   generateChart(reportData,label){
     let distancePerDay = {
@@ -267,7 +295,7 @@ export default class Report extends Component {
 
     let dateStart = this.state.dataReady?this.state.dateFrom.toLocaleDateString():''
     let dateEnd = this.state.dataReady?this.state.dateTo.toLocaleDateString():''
-    let header = "Rapport d’activité de «     » sur la période du " + dateStart + " Au " +dateEnd+" pour le scooter" ;
+    let header = "Rapport d’activité sur la période du " + dateStart + " Au " +dateEnd+" pour le scooter" ;
     return (
       <div className="animated fadeIn m-4">
         <div className="row">
@@ -284,8 +312,8 @@ export default class Report extends Component {
           <div className="col-sm-4 col-lg-3">
             <div className="card card-inverse card-info">
               <div className="card-block pb-0">
-                <h4 className="mb-0">{this.state.dataReady?this.state.avgDistance+' KM':null}</h4>
-                <p>Distance moyenne sur la période</p>
+                <h4 className="mb-0">{this.state.dataReady?this.state.totalTimeUsage+' Min':null}</h4>
+                <p>Temps de parcours total</p>
               </div>
             </div>
           </div>
@@ -293,8 +321,8 @@ export default class Report extends Component {
           <div className="col-sm-4 col-lg-3 offset-md-3">
             <div className="card card-inverse card-warning">
               <div className="card-block pb-0">
-                <h4 className="mb-0">{this.state.dataReady?this.state.timeUsageTotal+' Min':null}</h4>
-                <p>Temps de parcours total</p>
+                <h4 className="mb-0">{this.state.dataReady?this.state.avgDistance+' KM':null}</h4>
+                <p>Distance moyenne sur la période</p>
               </div>
             </div>
           </div>
