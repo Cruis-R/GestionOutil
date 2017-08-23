@@ -5,6 +5,7 @@ import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBo
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
 import urls from '../configs/serverConfigurations';
+import Map from './Geolocaliser/Map';
 const data = [{
   "id_scooter" : 1,
   "num_cruisrent" : "00000001",
@@ -78,7 +79,7 @@ export default class GestionDesScooters extends Component {
       boitiersAssocier : [],
       contratsAssocier : [],
       scootersAssocier : [],
-      rapport_mois: 1,
+      rapport_mois: "2017-08",
       rapport_jour : 1,
       rapport_url : 'report?deviceId=1'
     }
@@ -349,23 +350,28 @@ export default class GestionDesScooters extends Component {
       console.error(error);
     });
   }
-  handleSelectRapportMois(mois_index){
-    console.log(mois_index,(parseInt(mois_index)+1)%12);
-    let date1 = new Date('2017-'+month_select[mois_index]["id"]+'-'+document.getElementById('rapport_jour').value);
-    let date2 = new Date('2017-'+month_select[(parseInt(mois_index)+1)%12]["id"]);
+  handleSelectRapportMois(mois){
+    let year = parseInt(mois.split('-')[0]);
+    let mois_index = parseInt(mois.split('-')[1]);
+    let jourFin = year%4===0&&mois_index===2?29:month_day_select[mois_index-1];
+    let date1 = new Date(mois+'-'+document.getElementById('rapport_jour').value);
+    let date2 = new Date(mois+'-'+jourFin);
     let id = this.state.scooterConcerne['id_scooter'];
     let nom_scooter = this.state.scooterConcerne['num_cruisrent'];
     let dateFrom = date1.toISOString();
     let dateTo = date2.toISOString();
     let rapport_url ='report?deviceId='+id+'&from='+dateFrom+'&to='+dateTo+'&nom_scooter='+nom_scooter;
     this.setState({
-      rapport_mois : mois_index,
+      rapport_mois : mois,
       rapport_url : rapport_url
     })
   }
   handleSelectRapportJour(jour){
-    let date1 = new Date('2017-'+month_select[this.state.rapport_mois]["id"]+'-'+jour);
-    let date2 = new Date('2017-'+month_select[(parseInt(this.state.rapport_mois)+1)%12]["id"]);
+    let year = parseInt(this.state.rapport_mois.split('-')[0]);
+    let mois_index = parseInt(this.state.rapport_mois.split('-')[1]);
+    let jourFin = year%4===0&&mois_index===2?29:month_day_select[mois_index-1];
+    let date1 = new Date(this.state.rapport_mois+'-'+jour);
+    let date2 = new Date(this.state.rapport_mois+'-'+jourFin);
     let id = this.state.scooterConcerne['id_scooter'];
     let nom_scooter = this.state.scooterConcerne['num_cruisrent'];
     let dateFrom = date1.toISOString();
@@ -765,7 +771,7 @@ export default class GestionDesScooters extends Component {
                 </div>
               </TabPane>
               <TabPane tabId="2">
-
+                {this.state.activeTab==='2'?<Map/>:null}
               </TabPane>
             </TabContent>
           </div>
@@ -880,21 +886,19 @@ export default class GestionDesScooters extends Component {
               <ModalBody>
                 <div className="row">
                   <div className="form-group col-sm-12">
+                    <label htmlFor="rapport_mois">N° CruisrRent</label>
+                    <input disabled type="text" className="form-control" id="num_cruisrent" placeholder="Scooter" defaultValue = {this.state.scooterConcerne["num_cruisrent"]}/>
+                  </div>
+                  <div className="form-group col-sm-12">
                     <label htmlFor="rapport_mois">Selectionner le mois</label>
-                    <select className="form-control" id="rapport_mois" placeholder="Rapport Mois" defaultValue={new Date().getMonth()} onChange={(e)=>this.handleSelectRapportMois(e.target.value)}>
-                      {
-                        month_select.map((instance,index)=>{
-                          return <option value={index}>{instance["nom"]}</option>
-                        })
-                      }
-                    </select>
+                    <input type="month" className="form-control" id="rapport_mois2" placeholder="Rapport Mois" defaultValue = {new Date().toISOString()} onChange={(e)=>this.handleSelectRapportMois(e.target.value)}/>
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="rapport_start_day">Selectionner le Jour Début</label>
                     <select className="form-control" id="rapport_jour" placeholder="Rapport Jour Début" onChange={(e)=>this.handleSelectRapportJour(e.target.value)}>
                       {
                         month_day_list.map((instance,index)=>{
-                          if (parseInt(instance)<=month_day_select[this.state.rapport_mois]) {
+                          if (parseInt(instance)<=month_day_select[parseInt(this.state.rapport_mois.split('-')[1])-1]) {
                             return <option value={instance}>{instance}</option>
                           }
                         })
@@ -904,7 +908,7 @@ export default class GestionDesScooters extends Component {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Link target="_blank" to={this.state.rapport_url}  className="text-white"><button type="button" className="btn btn-info btn-sm"  onClick={this.toggleInfoCompletModal}>Afficher</button></Link>
+                <Link target="_blank" to={this.state.rapport_url}  className="text-white"><button type="button" className="btn btn-info btn-sm">Afficher</button></Link>
                 <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInfoCompletModal}>Fermer</button>
               </ModalFooter>
             </Modal>:null
