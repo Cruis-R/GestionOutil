@@ -292,10 +292,11 @@ export default class Report extends Component {
     return new Date(date).toISOString().split('T')[0];
   }
   render(){
-
-    let dateStart = this.state.dataReady?this.state.dateFrom.toLocaleDateString():''
-    let dateEnd = this.state.dataReady?this.state.dateTo.toLocaleDateString():''
-    let header = "Rapport d’activité sur la période du " + dateStart + " Au " +dateEnd+" pour le scooter" ;
+    console.log(this.props.location.search);
+    let dateStart = this.state.dataReady?this.state.dateFrom.toLocaleDateString():'';
+    let dateEnd = this.state.dataReady?this.state.dateTo.toLocaleDateString():'';
+    let scooter_id = this.state.dataReady?(this.props.location.search.split('nom_scooter=')[1]):'';
+    let header = "Rapport d’activité sur la période du " + dateStart + " Au " +dateEnd+" pour le scooter "+scooter_id ;
     return (
       <div className="animated fadeIn m-4">
         <div className="row">
@@ -432,8 +433,8 @@ export default class Report extends Component {
               </div>
             </div>
           </div>
+          <div className="col-lg-12 text-center"><strong>CRUIS RENT</strong> 82 Avenue Denfert Rochereau – Tel : 0954 55 4000 – <a href="http://www.cruisrent.com">www.cruisrent.com</a>   RCS Paris 812 634 160 00012 – SASU au capital de 30 000 € - TVA Intracommunautaire : FR37 812634160</div>
         </div>
-
       </div>
 
     )

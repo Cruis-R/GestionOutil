@@ -15,4 +15,4 @@ build
 npm-debug.log
 
 #server configs
-src/GestionOutil/src/views/GestionsComponents/configs/serverConfigurations.js
+serverConfigurations.js

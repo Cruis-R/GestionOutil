@@ -1,5 +1,6 @@
 import ReactDOM from 'react-dom'
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom'
 import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter, Button, Progress } from 'reactstrap';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
@@ -33,21 +34,21 @@ const statut = {
   3 : "Hors service",
   4 : "A récupérer"
 }
-const month_days = {
-  1 : 31,
-  2 : 28,
-  3 : 31,
-  4 : 30,
-  5 : 31,
-  6 : 30,
-  7 : 31,
-  8 : 31,
-  9 : 30,
-  10 : 31,
-  11 : 30,
-  12 : 31,
-  13 : 29
-}
+const month_select = [
+  {id:"01",nom:"Janvier"},
+  {id:"02",nom:"Février"},
+  {id:"03",nom:"Mars"},
+  {id:"04",nom:"Avril"},
+  {id:"05",nom:"Mai"},
+  {id:"06",nom:"Juin"},
+  {id:"07",nom:"Juillet"},
+  {id:"08",nom:"Août"},
+  {id:"09",nom:"Septembre"},
+  {id:"10",nom:"Octobre"},
+  {id:"11",nom:"Novembre"},
+  {id:"12",nom:"Décembre"}];
+const month_day_select = [31,28,31,30,31,30,31,31,30,31,30,31];
+const month_day_list = ['01','02','03','04','05','06','07','08','09',10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31];
 const urlStatuts = urls.statuts;
 const urlScooters = urls.scooters;
 const urlBoitiersAssocier = urls.boitiers_associer;
@@ -76,8 +77,13 @@ export default class GestionDesScooters extends Component {
       statutsData : [],
       boitiersAssocier : [],
       contratsAssocier : [],
-      scootersAssocier : []
+      scootersAssocier : [],
+      rapport_mois: 1,
+      rapport_jour : 1,
+      rapport_url : 'report?deviceId=1'
     }
+    this.handleSelectRapportMois = this.handleSelectRapportMois.bind(this);
+    this.handleSelectRapportJour = this.handleSelectRapportJour.bind(this);
     this.toggle = this.toggle.bind(this);
     this.toggleInsertScooterModal = this.toggleInsertScooterModal.bind(this);
     this.toggleAssocierContratModal = this.toggleAssocierContratModal.bind(this);
@@ -343,109 +349,32 @@ export default class GestionDesScooters extends Component {
       console.error(error);
     });
   }
-  getScooterReport(id){
-    /*scooterPositionData :[],
-    scooterEventData :[],
-    scooterTripsData :[]
-    scooterStopsData :[]
-    scooterSummaryData :[]*/
-    console.log("getScooterReport");
-    const queryMethod = 'GET';
-    let date1 = new Date('2017-08');
-    let dateOrigin = new Date('2017-04');
-    let date2 = new Date('2017-09');
+  handleSelectRapportMois(mois_index){
+    console.log(mois_index,(parseInt(mois_index)+1)%12);
+    let date1 = new Date('2017-'+month_select[mois_index]["id"]+'-'+document.getElementById('rapport_jour').value);
+    let date2 = new Date('2017-'+month_select[(parseInt(mois_index)+1)%12]["id"]);
+    let id = this.state.scooterConcerne['id_scooter'];
+    let nom_scooter = this.state.scooterConcerne['num_cruisrent'];
     let dateFrom = date1.toISOString();
-    let dateFromOrigin = dateOrigin.toISOString();
-    let year = date1.getFullYear();
-    let month = year%4!==0?date1.getMonth()+1:13;
     let dateTo = date2.toISOString();
-    let urlTrips = 'http://vps92599.ovh.net:8082/api/reports/trips?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
-    let urlStops = 'http://vps92599.ovh.net:8082/api/reports/stops?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
-    let urlSummary = 'http://vps92599.ovh.net:8082/api/reports/summary?deviceId='+id+'&from='+dateFromOrigin+'&to='+dateTo;
-    let urls = [urlSummary,urlTrips,urlStops];
-    var promises = urls.map(url =>
-      fetch(url,{
-        credentials: 'include'
-      }).then(y => y.json()));
-    Promise.all(promises).then(results => {
-      console.log('report',results);
-      let result_period = this.analyseTripsAndStops(results[1],results[2],month);
-      let career_info = (results[0][0]['distance']/1000).toFixed(2);
-      console.log('result_period',result_period);
-      console.log('career_info',career_info);
-    });
-    /*fetch(url,{
-      credentials: 'include'
+    let rapport_url ='report?deviceId='+id+'&from='+dateFrom+'&to='+dateTo+'&nom_scooter='+nom_scooter;
+    this.setState({
+      rapport_mois : mois_index,
+      rapport_url : rapport_url
     })
-    .then((response)=>response.json())
-    .then((result)=>{
-        console.log("result",result);
-    })*/
   }
-  analyseTripsAndStops(trips,stops,month){
-    //data from trips
-    let dayNum = month_days[month];
-    let dayList = [];
-    let distancePerDay = [];//from trips /km
-    let timeUsagePerDay = [];//from tripTimePerDay + stopTimePerDay /seconds
-    let stopTimePerDay = [];//from stops /seconds
-    let tripsNumPerDay = [];//from trips /int
-    let tripTimePerDay = [];//from trips /seconds
-
-    for (var i = 0; i < dayNum; i++) {
-      dayList[i] = i+1;
-      distancePerDay[i] = 0;
-      timeUsagePerDay[i] = 0;
-      tripsNumPerDay[i] = 0;
-      tripTimePerDay[i] = 0;
-      stopTimePerDay[i] = 0;
-    }
-    trips.map((instance,index)=>{
-      let date1 = new Date(instance['startTime']);
-      let date2 = new Date(instance['endTime']);
-      let dayIndex = date1.getDate()-1;
-      let dayEndIndex = date2.getDate()-1;
-      if (dayIndex===dayEndIndex) {
-        distancePerDay[dayIndex] = distancePerDay[dayIndex]+(instance['distance']/1000);
-        tripsNumPerDay[dayIndex] = tripsNumPerDay[dayIndex] + 1;
-        tripTimePerDay[dayIndex] = tripTimePerDay[dayIndex]+(instance['duration']/1000);
-      }
-      //total km per day from trips
+  handleSelectRapportJour(jour){
+    let date1 = new Date('2017-'+month_select[this.state.rapport_mois]["id"]+'-'+jour);
+    let date2 = new Date('2017-'+month_select[(parseInt(this.state.rapport_mois)+1)%12]["id"]);
+    let id = this.state.scooterConcerne['id_scooter'];
+    let nom_scooter = this.state.scooterConcerne['num_cruisrent'];
+    let dateFrom = date1.toISOString();
+    let dateTo = date2.toISOString();
+    let rapport_url ='report?deviceId='+id+'&from='+dateFrom+'&to='+dateTo+'&nom_scooter='+nom_scooter;
+    this.setState({
+      rapport_jour : jour,
+      rapport_url : rapport_url
     })
-    stops.map((instance,index)=>{
-      let date1 = new Date(instance['startTime']);
-      let date2 = new Date(instance['endTime']);
-      let dayIndex = date1.getDate()-1;
-      let dayEndIndex = date2.getDate()-1;
-      if (dayIndex===dayEndIndex) {
-      //total km per day from trips
-        stopTimePerDay[dayIndex] = stopTimePerDay[dayIndex]+(instance['duration']/1000);
-      }
-    })
-    //calculate total
-    timeUsagePerDay.map((instance,index)=>{
-      timeUsagePerDay[index] = stopTimePerDay[index] + tripTimePerDay[index] // /hours
-    })
-    let timeUsageTotal = (timeUsagePerDay.reduce((a,b) => (a+b))/3600);
-    let totalDistance = distancePerDay.reduce((a,b) => (a+b));
-
-    //format to hours and kms with 2 point
-    timeUsagePerDay.map((instance,index)=>{
-      timeUsagePerDay[index] = (timeUsagePerDay[index]/3600).toFixed(2); // /hours
-    })
-    tripTimePerDay.map((instance,index)=>{
-      tripTimePerDay[index] = (tripTimePerDay[index]/3600).toFixed(2); // /hours
-    })
-    distancePerDay.map((instance,index)=>{
-      distancePerDay[index] = distancePerDay[index].toFixed(2); // /kms
-    })
-    stopTimePerDay.map((instance,index)=>{
-      stopTimePerDay[index] = (stopTimePerDay[index]/3600).toFixed(2); // /hours
-    })
-    let avgDistance = (totalDistance/distancePerDay.length).toFixed(2);
-    let avgTimeUsage = (timeUsageTotal/timeUsagePerDay.length).toFixed(2);
-    console.log('result analysis',distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal);
-    return [distancePerDay,timeUsagePerDay,stopTimePerDay,tripsNumPerDay,avgDistance,avgTimeUsage,timeUsageTotal.toFixed(2)]
   }
   toggle(tab) {
     if (this.state.activeTab !== tab) {
@@ -494,21 +423,29 @@ export default class GestionDesScooters extends Component {
     });
   }
   toggleInfoCompletModal(data){
-    console.log("toggleInfoCompletModal data",data);
-    let date1 = new Date('2017-08');
-    let date2 = new Date('2017-09');
-    let id = data['id_scooter'];
-    let dateFrom = date1.toISOString();
-    let dateTo = date2.toISOString();
-    window.location.href='#/report?deviceId='+id+'&from='+dateFrom+'&to='+dateTo;
-    /*
     if (!this.state.isInfoCompletModal) {
-      this.getScooterReport(data['id_scooter']);
+      let date1 = new Date('2017-01');
+      let date2 = new Date('2017-02');
+      let id = data['id_scooter'];
+      let nom_scooter = data['num_cruisrent'];
+      let dateFrom = date1.toISOString();
+      let dateTo = date2.toISOString();
+      let rapport_url ='report?deviceId='+id+'&from='+dateFrom+'&to='+dateTo+'&nom_scooter='+nom_scooter;
+      this.setState({
+        isInfoCompletModal : !this.state.isInfoCompletModal,
+        scooterConcerne : data,
+        rapport_url : rapport_url
+      });
+    }else {
+      this.setState({
+        isInfoCompletModal : !this.state.isInfoCompletModal,
+        scooterConcerne : data
+      });
     }
-    this.setState({
-      isInfoCompletModal : !this.state.isInfoCompletModal,
-      scooterConcerne : data
-    });*/
+
+    /*
+    console.log("toggleInfoCompletModal data",data);
+    */
   }
   toggleScooterContratModal(data){
     console.log("ScooterContrat data",data);
@@ -535,7 +472,7 @@ export default class GestionDesScooters extends Component {
     return (
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierScooterModal(row)}>Modifier</button>
-        <button type="button" className="btn btn-primary btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Afficher</button>
+        <button type="button" className="btn btn-primary btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Rapport</button>
         <button type="button" className="btn btn-info btn-sm col-sm-4" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
       </div>
     );
@@ -760,13 +697,6 @@ export default class GestionDesScooters extends Component {
                   Géolocaliser
                 </NavLink>
               </NavItem>
-              <NavItem>
-                <NavLink
-                  className={classnames({ active: this.state.activeTab === '3' })}
-                  onClick={() => { this.toggle('3'); }}>
-                  Rapport Mensuel
-                </NavLink>
-              </NavItem>
             </Nav>
             <TabContent activeTab={this.state.activeTab}>
               <TabPane tabId="1">
@@ -832,9 +762,6 @@ export default class GestionDesScooters extends Component {
                 </div>
               </TabPane>
               <TabPane tabId="2">
-
-              </TabPane>
-              <TabPane tabId="3">
 
               </TabPane>
             </TabContent>
@@ -946,129 +873,37 @@ export default class GestionDesScooters extends Component {
 
             this.state.isInfoCompletModal?
             <Modal className='modal-lg modal-info' isOpen={this.state.isInfoCompletModal} toggle={this.toggleInfoCompletModal}>
-              <ModalHeader toggle={this.toggleInfoCompletModal}>Information du Scooter</ModalHeader>
+              <ModalHeader toggle={this.toggleInfoCompletModal}>Rapport Mensuelle</ModalHeader>
               <ModalBody>
                 <div className="row">
-                  <div className="col-sm-6 col-lg-3">
-                    <div className="card">
-                      <div className="card-block">
-                        <div>{this.state.scooterConcerne["immat"]}</div>
-                        <small className="text-muted">No° d&#39;immatriculation</small>
-                      </div>
-                    </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="rapport_mois">Selectionner le mois</label>
+                    <select className="form-control" id="rapport_mois" placeholder="Rapport Mois" onChange={(e)=>this.handleSelectRapportMois(e.target.value)}>
+                      <option disabled value='selectionner un mois'> -- selectionner un mois -- </option>
+                      {
+                        month_select.map((instance,index)=>{
+                          return <option value={index}>{instance["nom"]}</option>
+                        })
+                      }
+                    </select>
                   </div>
-                  <div className="col-sm-6 col-lg-3">
-                    <div className="card">
-                      <div className="card-block">
-                        <div>{this.state.scooterConcerne["type_usage"]}</div>
-                        <small className="text-muted">Type d&#39;usage</small>
-                      </div>
-                    </div>
+                  <div className="form-group col-sm-12">
+                    <label htmlFor="rapport_start_day">Selectionner le Jour Début</label>
+                    <select className="form-control" id="rapport_jour" placeholder="Rapport Jour Début" onChange={(e)=>this.handleSelectRapportJour(e.target.value)}>
+                      {
+                        month_day_list.map((instance,index)=>{
+                          if (parseInt(instance)<=month_day_select[this.state.rapport_mois]) {
+                            return <option value={instance}>{instance}</option>
+                          }
+                        })
+                      }
+                    </select>
                   </div>
-                  <div className="col-sm-6 col-lg-3">
-                    <div className="card">
-                      <div className="card-block">
-                        <div>{this.state.scooterConcerne["date_immat"]?this.state.scooterConcerne["date_immat"].split('T')[0]:'2017-08-03'}</div>
-                        <small className="text-muted">Date d&#39;immatriculation</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-sm-6 col-lg-3">
-                    <div className="card">
-                      <div className="card-block">
-                        <div>{this.state.scooterConcerne["date_immat"]?this.state.scooterConcerne["date_immat"].split('T')[0]:'2017-08-03'}</div>
-                        <small className="text-muted">Dates de révision</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-group">
-                  <div className="card card-inverse card-info">
-                    <div className="card-block">
-                      <div className="h1 text-muted text-right mb-2">
-                        <i className="icon-speedometer"></i>
-                      </div>
-                      <div className="h4 mb-0">{this.state.scooterConcerne["taux"]?this.state.scooterConcerne["taux"]:"20 E"}</div>
-                      <small className="text-muted text-uppercase font-weight-bold">Taux</small>
-                    </div>
-                  </div>
-                  <div className="card card-inverse card-primary">
-                    <div className="card-block">
-                      <div className="h1 text-muted text-right mb-2">
-                        <i className="icon-speedometer"></i>
-                      </div>
-                      <div className="h4 mb-0">{this.state.scooterConcerne["temp"]?this.state.scooterConcerne["temp_usage"]:"25 H"}</div>
-                      <small className="text-muted text-uppercase font-weight-bold">Temp d&#39;usage</small>
-                    </div>
-                  </div>
-                  <div className="card card-inverse card-success">
-                    <div className="card-block">
-                      <div className="h1 text-muted text-right mb-2">
-                        <i className="icon-speedometer"></i>
-                      </div>
-                      <div className="h4 mb-0">{this.state.scooterConcerne["km_total"]?this.state.scooterConcerne["km_total"]:"109.8"}</div>
-                      <small className="text-muted text-uppercase font-weight-bold">Km Total</small>
-                    </div>
-                  </div>
-                  <div className="card card-inverse card-warning">
-                    <div className="card-block">
-                      <div className="h1 text-muted text-right mb-2">
-                        <i className="icon-speedometer"></i>
-                      </div>
-                      <div className="h4 mb-0">1</div>
-                      <small className="text-muted text-uppercase font-weight-bold">Intervention</small>
-                    </div>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col-6">
-                    <div className="card">
-                      <div className="card-block p-3 clearfix">
-                        <i className="fa fa-laptop bg-info p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">50.2 KM</div>
-                        <div className="text-muted text-uppercase font-weight-bold font-xs">Km Moyen par Mois</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="card">
-                      <div className="card-block p-3 clearfix">
-                        <i className="fa fa-moon-o bg-warning p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">20.3 KM</div>
-                        <div className="text-muted text-uppercase font-weight-bold font-xs">Km en cour</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="card">
-                      <div className="card-block p-3 clearfix">
-                        <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">80.2 KM</div>
-                        <div className="text-muted text-uppercase font-weight-bold font-xs">Km année</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-6">
-                    <div className="card">
-                      <div className="card-block p-3 clearfix">
-                        <i className="fa fa-cogs bg-primary p-3 font-2xl mr-3 float-left"></i>
-                        <div className="h5 text-primary mb-0 mt-2">65.2 KM/H</div>
-                        <div className="text-muted text-uppercase font-weight-bold font-xs">Vitesse moyenne</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div>Détail des contrats affecté</div>
-                  <div>Description des interventions par contrat et par conducteur</div>
-                  <div>Position géographique du scooter</div>
-                  <div>Nombre d’arrêt sur un période</div>
-                  <div>Visualisation des parcours sur une période</div>
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" className="btn btn-sm btn-success" onClick={this.toggleInfoCompletModal}>Submit</button>
-                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInfoCompletModal}>Cancel</button>
+                <Link target="_blank" to={this.state.rapport_url}  className="text-white"><button type="button" className="btn btn-info btn-sm"  onClick={this.toggleInfoCompletModal}>Afficher</button></Link>
+                <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleInfoCompletModal}>Fermer</button>
               </ModalFooter>
             </Modal>:null
           }
