@@ -355,7 +355,7 @@ export default class GestionDesScooters extends Component {
     let mois_index = parseInt(mois.split('-')[1]);
     let jourFin = year%4===0&&mois_index===2?29:month_day_select[mois_index-1];
     let date1 = new Date(mois+'-'+document.getElementById('rapport_jour').value);
-    let date2 = new Date(mois+'-'+jourFin);
+    let date2 = new Date(mois+'-'+jourFin+'T21:59:59.999Z');
     let id = this.state.scooterConcerne['id_scooter'];
     let nom_scooter = this.state.scooterConcerne['num_cruisrent'];
     let dateFrom = date1.toISOString();
@@ -371,7 +371,7 @@ export default class GestionDesScooters extends Component {
     let mois_index = parseInt(this.state.rapport_mois.split('-')[1]);
     let jourFin = year%4===0&&mois_index===2?29:month_day_select[mois_index-1];
     let date1 = new Date(this.state.rapport_mois+'-'+jour);
-    let date2 = new Date(this.state.rapport_mois+'-'+jourFin);
+    let date2 = new Date(this.state.rapport_mois+'-'+jourFin+'T21:59:59.999Z');
     let id = this.state.scooterConcerne['id_scooter'];
     let nom_scooter = this.state.scooterConcerne['num_cruisrent'];
     let dateFrom = date1.toISOString();
@@ -430,11 +430,11 @@ export default class GestionDesScooters extends Component {
   }
   toggleInfoCompletModal(data){
     if (!this.state.isInfoCompletModal) {
-      let monthIndex = new Date().getMonth();
-      let monthIndex2 = (parseInt(monthIndex)+1)%12;
+      let mois_index = new Date().getMonth();
       let year = new Date().getFullYear();
-      let date1 = new Date(year+'-'+month_select[monthIndex]['id']);
-      let date2 = new Date(year+'-'+month_select[monthIndex2]['id']);
+      let jourFin = year%4===0&&mois_index===2?29:month_day_select[mois_index-1];
+      let date1 = new Date(year+'-'+month_select[mois_index]['id']);
+      let date2 = new Date(year+'-'+month_select[mois_index]['id']+'-'+jourFin+'T21:59:59.999Z');
       let id = data['id_scooter'];
       let nom_scooter = data['num_cruisrent'];
       let dateFrom = date1.toISOString();
@@ -891,7 +891,7 @@ export default class GestionDesScooters extends Component {
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="rapport_mois">Selectionner le mois</label>
-                    <input type="month" className="form-control" id="rapport_mois2" placeholder="Rapport Mois" defaultValue = {new Date().toISOString()} onChange={(e)=>this.handleSelectRapportMois(e.target.value)}/>
+                    <input type="month" className="form-control" id="rapport_mois2" placeholder="Rapport Mois" defaultValue = {new Date().toISOString().slice(0,7)} onChange={(e)=>this.handleSelectRapportMois(e.target.value)}/>
                   </div>
                   <div className="form-group col-sm-12">
                     <label htmlFor="rapport_start_day">Selectionner le Jour Début</label>

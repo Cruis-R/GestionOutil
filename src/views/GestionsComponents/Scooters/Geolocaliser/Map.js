@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import L from 'leaflet';
+import classnames from 'classnames';
+import Select from 'react-select';
+import 'react-select/dist/react-select.css';
 (function(window, document, undefined) {
     L.MyMarkers = {};
     L.MyMarkers.version = "1.0.1";
@@ -107,14 +110,19 @@ export default class Map extends Component{
     this.state = {
       map : null,
       geoData : {type:"FeatureCollection",features:[]},
-      geojsonLayer : null
+      geojsonLayer : null,
+      scooterNumClicked : null,
+      scooterSelected : [],
+      scooterList : []
     }
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
     this.addGeoJSONLayer = this.addGeoJSONLayer.bind(this);
     this.pointToLayer = this.pointToLayer.bind(this);
     this.onEachFeature = this.onEachFeature.bind(this);
+    this.filterFeatures = this.filterFeatures.bind(this);
     this.zoomToFeature = this.zoomToFeature.bind(this);
+    this.handleSelectChange = this.handleSelectChange.bind(this);
   }
   componentDidMount() {
     this.init(this._mapNode);
@@ -156,11 +164,10 @@ export default class Map extends Component{
       var markers = this.markerAndIcons(feature.properties.markerAndIcons?feature.properties.markerAndIcons:null);
       var testMarker = L.marker(latlng,{icon: L.divIcon({className: 'markers', html:markers, iconSize:[35,35],iconAnchor : [17,42]}),riseOnHover:true})
                         .on('click',(e)=>{
-                          setTimeout(()=>{
-                            this.state.map.invalidateSize();
-                            this.state.map.panTo(e.target.getLatLng());
-                          },501);
-
+                          cur.setState({
+                            scooterNumClicked : feature.properties.scooterGeodataIndex
+                          });
+                          this.state.map.panTo(e.target.getLatLng());
                         },);
       return testMarker;
     }else{
@@ -184,8 +191,18 @@ export default class Map extends Component{
     }
   }
   filterFeatures(feature, layer) {
-    if(!feature.geometry.coordinates[0]||!feature.geometry.coordinates[1]) return false;
-    return true;
+    let result = true;
+    if(!feature.geometry.coordinates[0]||!feature.geometry.coordinates[1]){
+      result = false;
+    }if (this.state.scooterSelected.length>0) {
+      result = false;
+      this.state.scooterSelected.map((instance)=>{
+        if(instance["value"]===feature.properties.name){
+          result = true;
+        }
+      });
+    }
+    return result;
   }
   zoomToFeature(target) {
     var fitBoundsParams = {
@@ -193,7 +210,8 @@ export default class Map extends Component{
       paddingBottomRight: [20,20],
       maxZoom : 18
     };
-    this.state.map.fitBounds(target.getBounds(), fitBoundsParams);
+    Object.getOwnPropertyNames(target.getBounds()).length>0?
+    this.state.map.fitBounds(target.getBounds(), fitBoundsParams):null;
   }
   updateScooterDataFromServer(){
     let urls = ["http://vps92599.ovh.net:8082/api/devices","http://vps92599.ovh.net:8082/api/groups","http://vps92599.ovh.net:8082/api/positions"];
@@ -238,7 +256,7 @@ export default class Map extends Component{
           "lat":positionIndex>=0?data[2][positionIndex]["latitude"]:null,
           "long":positionIndex>=0?data[2][positionIndex]["longitude"]:null,
           "speed":positionIndex>=0?data[2][positionIndex]["speed"]+"Km/h": "To be getted",
-          "address":positionIndex>=0?data[2][positionIndex]["address"]:"To be getted",
+          "address":positionIndex>=0?(data[2][positionIndex]["address"]?data[2][positionIndex]["address"]:"To be getted"):"To be getted",
           "attributes":value["attributes"]?value["attributes"]:"To be getted",
           "category":value["category"]?value["category"]:"To be getted",
           "contact":value["contact"]?value["contact"]:"To be getted",
@@ -260,12 +278,14 @@ export default class Map extends Component{
             "coordinates": [scooterDetails["long"],scooterDetails["lat"]]
           },
           "properties": {
-            "markerAndIcons" :[{"icon":"motorcycle","color":"CADETBLUE","number":null},{"icon":"number","color":"BLUE","number":scooterDetails['name']}]
+            "markerAndIcons" :[{"icon":"motorcycle","color":"CADETBLUE","number":null},{"icon":"number","color":"BLUE","number":scooterDetails['name']}],
+            "mileage":scooterDetails["mileage"],
+            "speed" : scooterDetails["speed"],
+            "name" : scooterDetails["name"],
+            "address" : scooterDetails["address"],
+            "status" : scooterDetails["status"],
+            "scooterGeodataIndex" : index
           }
-        }
-        let scooter = {
-          "@id":value["name"].replace( /\D+/g, ''),
-          "broader" : "ScooterList"
         }
         let timeString = null;
         if(positionIndex>=0){
@@ -275,17 +295,19 @@ export default class Map extends Component{
           let timeDifs = ((clientTime.getTime()-updateTime.getTime())/60/1000).toFixed(1);
           timeString = timeDifs?(timeDifs>=60?(timeDifs>=1440?(timeDifs/1440).toFixed(1)+' Days ago':(timeDifs/60).toFixed(1)+' Hours ago'):(timeDifs)+' Minutes ago'):null;
         }
-        let scooterListTableData = {
-          "name":value["name"].replace( /\D+/g, ''),
+        let scooterListData = {
+          "value":scooterDetails["name"],
+          "label":scooterDetails["name"],
           "updateTime":timeString?timeString:"Unknown",
-          "status":value["status"]?value["status"]:"Not Getted"
+          "status":scooterDetails["status"]?scooterDetails["status"]:"to be getted"
         }
         scooterData["features"].push(template);
-        scooterList.push(scooter);
+        scooterList.push(scooterListData);
       }
     });
     this.setState({
-      geoData : scooterData
+      geoData : scooterData,
+      scooterList : scooterList
     });
   }
   markerAndIcons(info){
@@ -365,11 +387,60 @@ export default class Map extends Component{
     const tileLayer = L.tileLayer(config.tileLayer.uri, config.tileLayer.params).addTo(map);
     this.setState({ map:map});
   }
+  handleSelectChange (value) {
+		console.log('You\'ve selected scooter:', value);
+		this.setState({ scooterSelected : value });
+	}
   render(){
     return (
       <div className="row">
         <h1 className="text-info text-center col-12">Map</h1>
-        <div className="col-sm-6 col-lg-6 offset-md-3">
+        <div className="col-sm-12 col-lg-12">
+          <div className="card">
+            <div className="card-block p-3 clearfix row">
+              <div className="col-lg-1">
+                <i className="fa fa-motorcycle bg-primary p-3 mt-1 font-xl float-left"></i>
+              </div>
+              <div className="mt-2 col-lg-1 ">
+                <strong className="text-info">{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:"..."}</strong>
+                <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
+              </div>
+              <div className="mt-2 col-lg-1 ">
+                <strong className="text-info">{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['mileage']:0 + 'KM'}</strong>
+                <div className="text-muted text-uppercase font-weight-bold font-xs">parcours</div>
+              </div>
+              <div className="mt-2 col-lg-1 ">
+                <strong className={classnames({
+                    "text-success" : this.state.scooterNumClicked&&this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']==="online",
+                    "text-danger" : this.state.scooterNumClicked&&this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']==="offline",
+                    "text-warning" : this.state.scooterNumClicked&&this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']==="unknown",
+                    "text-info" : !this.state.scooterNumClicked})}>{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']:'...'}</strong>
+                <div className="text-muted text-uppercase font-weight-bold font-xs">status</div>
+              </div>
+              <div className="mt-2 col-lg-6 ">
+                <strong className="text-info">{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['address']:'...'}</strong>
+                <div className="text-muted text-uppercase font-weight-bold font-xs">address</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="col-sm-4 col-lg-4">
+          <div className="card">
+            <div className="card-block">
+              <label htmlFor="scooter_selection">Selectionner Scooters</label>
+              <Select
+                name="scooter_selection"
+                id="scooter_selection"
+                value={this.state.scooterSelected}
+                options={this.state.scooterList}
+                optionComponent={SelectOptions}
+                multi={true}
+                onChange = {this.handleSelectChange}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="col-sm-8 col-lg-8">
           <div className="card">
             <div className="card-block">
               <div id="mapUI">
@@ -378,8 +449,52 @@ export default class Map extends Component{
             </div>
           </div>
         </div>
-
       </div>
     );
   }
+}
+class SelectOptions extends Component{
+  constructor(props){
+    super(props);
+    this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleMouseEnter = this.handleMouseEnter.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+  }
+	handleMouseDown (event) {
+		event.preventDefault();
+		event.stopPropagation();
+		this.props.onSelect(this.props.option, event);
+	}
+	handleMouseEnter (event) {
+		this.props.onFocus(this.props.option, event);
+	}
+	handleMouseMove (event) {
+		if (this.props.isFocused) return;
+		this.props.onFocus(this.props.option, event);
+	}
+	render () {
+		return (
+			<div className={this.props.className}
+				onMouseDown={this.handleMouseDown}
+				onMouseEnter={this.handleMouseEnter}
+				onMouseMove={this.handleMouseMove}
+				title={this.props.option.title}>
+        <div className="row">
+          <div className="col-sm-2">
+            {this.props.children}
+          </div>
+          <div className="col-sm-6">
+            {this.props.option.updateTime}
+          </div>
+          <span className={classnames("badge mx-2",{
+              "badge-info":this.props.option.status==="To be getted",
+              "badge-warning":this.props.option.status==="unknown",
+              "badge-success":this.props.option.status==="online",
+              "badge-danger":this.props.option.status==="offline"})}>
+              {this.props.option.status}
+          </span>
+        </div>
+			</div>
+		);
+	}
 }

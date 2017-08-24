@@ -28,52 +28,52 @@ class Sidebar extends Component {
               Fonctions
             </li>
             <li className={this.activeRoute("/gestions")}>
-              <a className="nav-link nav-dropdown-toggle" href="#" onClick={this.handleClick.bind(this)}><i className="icon-puzzle"></i> Gestions</a>
+              <a className="nav-link nav-dropdown-toggle" href="#" onClick={this.handleClick.bind(this)}><i className="fa fa-puzzle-piece"></i> Gestions</a>
               <ul className="nav-dropdown-items">
                 <li className="nav-item">
-                  <NavLink to={'/gestions/utilisateurs'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Utilisateurs</NavLink>
+                  <NavLink to={'/gestions/utilisateurs'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Utilisateurs</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/scooters'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Scooters</NavLink>
+                  <NavLink to={'/gestions/scooters'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Scooters</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/droitsdeconduite'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Droits de Conduite</NavLink>
+                  <NavLink to={'/gestions/droitsdeconduite'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Droits de Conduite</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/conducteurs'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Conducteurs</NavLink>
+                  <NavLink to={'/gestions/conducteurs'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Conducteurs</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/contrats'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Contrats</NavLink>
+                  <NavLink to={'/gestions/contrats'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Contrats</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/batteries'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Batteries</NavLink>
+                  <NavLink to={'/gestions/batteries'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Batteries</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/chargeurs'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Chargeurs</NavLink>
+                  <NavLink to={'/gestions/chargeurs'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Chargeurs</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/stocks'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Stocks</NavLink>
+                  <NavLink to={'/gestions/stocks'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Stocks</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/boitiers'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Boitiers</NavLink>
+                  <NavLink to={'/gestions/boitiers'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Boitiers</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/flottes'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Flottes</NavLink>
+                  <NavLink to={'/gestions/flottes'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Flottes</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/clients'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Clients</NavLink>
+                  <NavLink to={'/gestions/clients'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Clients</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/facturations'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Facturations</NavLink>
+                  <NavLink to={'/gestions/facturations'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Facturations</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/interventions'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Interventions</NavLink>
+                  <NavLink to={'/gestions/interventions'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Interventions</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/notifications'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Notifications</NavLink>
+                  <NavLink to={'/gestions/notifications'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Notifications</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/gestions/alertes'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Alertes</NavLink>
+                  <NavLink to={'/gestions/alertes'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Alertes</NavLink>
                 </li>
               </ul>
             </li>
@@ -81,72 +81,38 @@ class Sidebar extends Component {
               UI Elements
             </li>
             <li className={this.activeRoute("/components")}>
-              <a className="nav-link nav-dropdown-toggle" href="#" onClick={this.handleClick.bind(this)}><i className="icon-puzzle"></i> Components</a>
+              <a className="nav-link nav-dropdown-toggle" href="#" onClick={this.handleClick.bind(this)}><i className="fa fa-puzzle-piece"></i> Components</a>
               <ul className="nav-dropdown-items">
                 <li className="nav-item">
-                  <NavLink to={'/components/buttons'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Buttons</NavLink>
+                  <NavLink to={'/components/buttons'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Buttons</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/social-buttons'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Social Buttons</NavLink>
+                  <NavLink to={'/components/social-buttons'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Social Buttons</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/cards'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Cards</NavLink>
+                  <NavLink to={'/components/cards'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Cards</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/forms'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Forms</NavLink>
+                  <NavLink to={'/components/forms'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Forms</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/modals'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Modals</NavLink>
+                  <NavLink to={'/components/modals'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Modals</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/switches'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Switches</NavLink>
+                  <NavLink to={'/components/switches'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Switches</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/tables'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Tables</NavLink>
+                  <NavLink to={'/components/tables'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Tables</NavLink>
                 </li>
                 <li className="nav-item">
-                  <NavLink to={'/components/tabs'} className="nav-link" activeClassName="active"><i className="icon-puzzle"></i> Tabs</NavLink>
-                </li>
-              </ul>
-            </li>
-            <li className={this.activeRoute("/icons")}>
-              <a className="nav-link nav-dropdown-toggle" href="#" onClick={this.handleClick.bind(this)}><i className="icon-star"></i> Icons</a>
-              <ul className="nav-dropdown-items">
-                <li className="nav-item">
-                  <NavLink to={'/icons/font-awesome'} className="nav-link" activeClassName="active"><i className="icon-star"></i> Font Awesome</NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to={'/icons/simple-line-icons'} className="nav-link" activeClassName="active"><i className="icon-star"></i> Simple Line Icons</NavLink>
+                  <NavLink to={'/components/tabs'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Tabs</NavLink>
                 </li>
               </ul>
             </li>
             <li className="nav-item">
               <NavLink to={'/widgets'} className="nav-link" activeClassName="active"><i className="icon-calculator"></i> Widgets <span className="badge badge-info">NEW</span></NavLink>
             </li>
-            <li className="nav-item">
-              <NavLink to={'/charts'} className="nav-link" activeClassName="active"><i className="icon-pie-chart"></i> Charts</NavLink>
-            </li>
             <li className="divider"></li>
-            <li className="nav-title">
-              Extras
-            </li>
-            <li className="nav-item nav-dropdown">
-              <a className="nav-link nav-dropdown-toggle" href="#" onClick={this.handleClick.bind(this)}><i className="icon-star"></i> Pages</a>
-              <ul className="nav-dropdown-items">
-                <li className="nav-item">
-                  <NavLink to={'/login'} className="nav-link" activeClassName="active"><i className="icon-star"></i> Login</NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to={'/register'} className="nav-link" activeClassName="active"><i className="icon-star"></i> Register</NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to={'/404'} className="nav-link" activeClassName="active"><i className="icon-star"></i> Error 404</NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to={'/500'} className="nav-link" activeClassName="active"><i className="icon-star"></i> Error 500</NavLink>
-                </li>
-              </ul>
-            </li>
           </ul>
         </nav>
       </div>
