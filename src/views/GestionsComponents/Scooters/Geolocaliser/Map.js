@@ -117,6 +117,7 @@ export default class Map extends Component{
     }
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
+    this.refreshCountDownInterval;
     this.addGeoJSONLayer = this.addGeoJSONLayer.bind(this);
     this.pointToLayer = this.pointToLayer.bind(this);
     this.onEachFeature = this.onEachFeature.bind(this);
@@ -129,7 +130,7 @@ export default class Map extends Component{
     this.updateScooterDataFromServer();
     this.updateScooterDataInterval = setInterval(()=>{
       this.updateScooterDataFromServer();
-    },20000);
+    },30000);
   }
   componentDidUpdate(prevProps, prevState) {
     this.addGeoJSONLayer(this.state.geoData);
@@ -251,7 +252,7 @@ export default class Map extends Component{
         let groupIndex = this.findGroupIndex(value["groupId"],data[1]);
         let scooterDetails={
           "mobile":value["uniqueId"]?"imei:"+value["uniqueId"]:"To be getted",
-          "mileage" : positionIndex>=0?(data[2][positionIndex]["attributes"]["totalDistance"]/1000).toFixed(2)+"Km":"To be getted",
+          "mileage" : positionIndex>=0?(data[2][positionIndex]["attributes"]["totalDistance"]/1000).toFixed(2)+" KM":"To be getted",
           "date":positionIndex>=0?data[2][positionIndex]["deviceTime"]:"To be getted",
           "lat":positionIndex>=0?data[2][positionIndex]["latitude"]:null,
           "long":positionIndex>=0?data[2][positionIndex]["longitude"]:null,
@@ -392,9 +393,13 @@ export default class Map extends Component{
 		this.setState({ scooterSelected : value });
 	}
   render(){
+    const mileage = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['mileage']:'...';
+    const name = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:"...";
+    const address = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['address']:'...';
+    const status = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']:'...';
     return (
       <div className="row">
-        <h1 className="text-info text-center col-12">Map</h1>
+        <h1 className="text-info text-center col-12">Map(Refresh in <CountDown /> Seconds)</h1>
         <div className="col-sm-12 col-lg-12">
           <div className="card">
             <div className="card-block p-3 clearfix row">
@@ -402,23 +407,23 @@ export default class Map extends Component{
                 <i className="fa fa-motorcycle bg-primary p-3 mt-1 font-xl float-left"></i>
               </div>
               <div className="mt-2 col-lg-1 ">
-                <strong className="text-info">{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:"..."}</strong>
+                <strong className="text-info">{name}</strong>
                 <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
               </div>
-              <div className="mt-2 col-lg-1 ">
-                <strong className="text-info">{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['mileage']:0 + 'KM'}</strong>
+              <div className={classnames("mt-2",{"col-lg-1" : mileage.length<=7,"col-lg-2" : mileage.length>7})}>
+                <strong className="text-info">{mileage}</strong>
                 <div className="text-muted text-uppercase font-weight-bold font-xs">parcours</div>
               </div>
               <div className="mt-2 col-lg-1 ">
                 <strong className={classnames({
-                    "text-success" : this.state.scooterNumClicked&&this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']==="online",
-                    "text-danger" : this.state.scooterNumClicked&&this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']==="offline",
-                    "text-warning" : this.state.scooterNumClicked&&this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']==="unknown",
-                    "text-info" : !this.state.scooterNumClicked})}>{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']:'...'}</strong>
+                    "text-success" : status==="online",
+                    "text-danger" : status==="offline",
+                    "text-warning" : status==="unknown",
+                    "text-info" : status ==="..."})}>{status}</strong>
                 <div className="text-muted text-uppercase font-weight-bold font-xs">status</div>
               </div>
               <div className="mt-2 col-lg-6 ">
-                <strong className="text-info">{this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['address']:'...'}</strong>
+                <strong className="text-info">{address}</strong>
                 <div className="text-muted text-uppercase font-weight-bold font-xs">address</div>
               </div>
             </div>
@@ -495,6 +500,33 @@ class SelectOptions extends Component{
           </span>
         </div>
 			</div>
+		);
+	}
+}
+class CountDown extends Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      countDown : 30
+    }
+    this.refreshCountDownInterval;
+    this.mapRefreshCountDown = this.mapRefreshCountDown.bind(this);
+  }
+  componentDidMount(){
+    this.refreshCountDownInterval = setInterval(()=>{
+      this.mapRefreshCountDown();
+    },1000);
+  }
+  mapRefreshCountDown(){
+    let current = this.state.countDown;
+    let next = (current-1)<=0?30:(current-1);
+    this.setState({
+      countDown : next
+    })
+  }
+  render () {
+		return (
+      <span>{this.state.countDown}</span>
 		);
 	}
 }
