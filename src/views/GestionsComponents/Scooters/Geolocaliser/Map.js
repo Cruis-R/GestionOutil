@@ -151,7 +151,6 @@ export default class Map extends Component{
     if(this.state.scooterSelected.length!==prevState.scooterSelected.length){
       this.zoomToFeature(this.state.geojsonLayer);
     }
-    this.addArretsLayer(this.state.arretsGeojson);
   }
   componentWillUnmount() {
     clearInterval(this.updateScooterDataInterval);
@@ -232,9 +231,7 @@ export default class Map extends Component{
     return result;
   }
   clearArretsLayer(){
-    this.setState({
-      arretsGeojson :  {type:"FeatureCollection",features:[]},
-    })
+    this.state.arretsLayer.clearLayers();
   }
   addArretsLayer(geojson) {
     let cur = this;
@@ -373,6 +370,7 @@ export default class Map extends Component{
     this.setState({
       arretsGeojson : arretsGeojson
     })
+    this.addArretsLayer(arretsGeojson);
   }
   updateScooterDataFromServer(){
     let urls = ["http://vps92599.ovh.net:8082/api/devices","http://vps92599.ovh.net:8082/api/groups","http://vps92599.ovh.net:8082/api/positions"];
