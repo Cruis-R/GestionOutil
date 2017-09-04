@@ -3,6 +3,9 @@ import L from 'leaflet';
 import classnames from 'classnames';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
+import 'react-datetime/css/react-datetime.css'
+import DateTime from 'react-datetime';
+import { TabContent, TabPane, Nav, NavItem, NavLink } from 'reactstrap';
 (function(window, document, undefined) {
     L.MyMarkers = {};
     L.MyMarkers.version = "1.0.1";
@@ -104,24 +107,35 @@ const config = {
     }
   }
 }
+const colorList = ["#cbddb8","#f2cc8c","#c984b0","#8b4aa5","#7f3573","#cbddb8","#f2cc8c","#c984b0","#8b4aa5","#7f3573"];
 export default class Map extends Component{
   constructor(props) {
     super(props);
     this.state = {
+      activeTab : null,
       map : null,
       geoData : {type:"FeatureCollection",features:[]},
+      arretsGeojson :  {type:"FeatureCollection",features:[]},
       geojsonLayer : null,
+      arretsLayer : null,
       scooterNumClicked : null,
       scooterSelected : [],
       scooterList : []
     }
+    this.toggle = this.toggle.bind(this);
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
     this.refreshCountDownInterval;
+    this.afficherArrets = this.afficherArrets.bind(this);
     this.addGeoJSONLayer = this.addGeoJSONLayer.bind(this);
+    this.clearArretsLayer = this.clearArretsLayer.bind(this);
+    this.addArretsLayer = this.addArretsLayer.bind(this);
     this.pointToLayer = this.pointToLayer.bind(this);
+    this.pointToLayerArret = this.pointToLayerArret.bind(this);
     this.onEachFeature = this.onEachFeature.bind(this);
+    this.onEachFeatureArret = this.onEachFeatureArret.bind(this);
     this.filterFeatures = this.filterFeatures.bind(this);
+    this.formatArretsPositions = this.formatArretsPositions.bind(this);
     this.zoomToFeature = this.zoomToFeature.bind(this);
     this.handleSelectChange = this.handleSelectChange.bind(this);
   }
@@ -134,29 +148,41 @@ export default class Map extends Component{
   }
   componentDidUpdate(prevProps, prevState) {
     this.addGeoJSONLayer(this.state.geoData);
+    if(this.state.scooterSelected.length!==prevState.scooterSelected.length){
+      this.zoomToFeature(this.state.geojsonLayer);
+    }
+    this.addArretsLayer(this.state.arretsGeojson);
   }
   componentWillUnmount() {
     clearInterval(this.updateScooterDataInterval);
     this.state.map.remove();
   }
+  toggle(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({
+        activeTab: tab
+      });
+    }
+  }
   addGeoJSONLayer(geojson) {
     let cur = this;
     let geojsonLayer;
-    geojsonLayer = L.geoJson(geojson, {
-      onEachFeature: this.onEachFeature,
-      pointToLayer: this.pointToLayer,
-      filter: this.filterFeatures
-    });
-    if (!this.state.geojsonLayer) {
+
+    if (!this.state.geojsonLayer&&geojson["features"].length>0) {
+      geojsonLayer = L.geoJson(geojson, {
+        onEachFeature: this.onEachFeature,
+        pointToLayer: this.pointToLayer,
+        filter: this.filterFeatures
+      });
       geojsonLayer.addTo(this.state.map);
       geojson["features"].length>0?cur.zoomToFeature(geojsonLayer):null;
       this.setState({
         geojsonLayer:geojsonLayer
       })
-    }else {
+    }else if(this.state.geojsonLayer) {
       this.state.geojsonLayer.clearLayers();
       this.state.geojsonLayer.addData(geojson);
-      geojson["features"].length>0?cur.zoomToFeature(geojsonLayer):null;
+      //geojson["features"].length>0?cur.zoomToFeature(geojsonLayer):null;
     }
   }
   pointToLayer(feature, latlng) {
@@ -168,7 +194,7 @@ export default class Map extends Component{
                           cur.setState({
                             scooterNumClicked : feature.properties.scooterGeodataIndex
                           });
-                          this.state.map.panTo(e.target.getLatLng());
+                          this.state.map.setView(e.target.getLatLng(),14);
                         },);
       return testMarker;
     }else{
@@ -198,12 +224,72 @@ export default class Map extends Component{
     }if (this.state.scooterSelected.length>0) {
       result = false;
       this.state.scooterSelected.map((instance)=>{
-        if(instance["value"]===feature.properties.name){
+        if(instance["value"]===feature.properties.id){
           result = true;
         }
       });
     }
     return result;
+  }
+  clearArretsLayer(){
+    this.setState({
+      arretsGeojson :  {type:"FeatureCollection",features:[]},
+    })
+  }
+  addArretsLayer(geojson) {
+    let cur = this;
+    let arretsLayer;
+    console.log("addArretsLayer",geojson);
+    if (!this.state.arretsLayer&&geojson["features"].length>0) {
+      arretsLayer = L.geoJson(geojson, {
+        onEachFeature: this.onEachFeatureArret,
+        pointToLayer: this.pointToLayerArret
+      });
+      arretsLayer.addTo(this.state.map);
+      geojson["features"].length>0?cur.zoomToFeature(arretsLayer):null;
+      this.setState({
+        arretsLayer:arretsLayer
+      })
+    }else if(this.state.arretsLayer) {
+      this.state.arretsLayer.clearLayers();
+      this.state.arretsLayer.addData(geojson);
+      geojson["features"].length>0?cur.zoomToFeature(this.state.arretsLayer):null;
+    }
+  }
+  pointToLayerArret(feature, latlng) {
+    var cur = this;
+    let popupContent = `<div>Device: ${feature.properties.deviceName}</div>
+                        <div>Duree: ${(feature.properties.duration/60000).toFixed(2)} Mins</div>
+                        <div>Date: ${feature.properties.date}</div>
+                        <div>Time: ${feature.properties.time}</div>
+                        `;
+    if(feature.geometry.type ==="Point"){
+      var marker =new L.CircleMarker(latlng, {
+                      radius: 5,
+                      fillColor: feature.geometry.color,
+                      color: "#000",
+                      weight: 1,
+                      opacity: 0.5,
+                      fillOpacity: 1
+                    }).bindPopup(popupContent);
+      return marker;
+    }else{
+      return null;
+    }
+  }
+  onEachFeatureArret(feature, marker) {
+    var cur = this;
+    if (feature.geometry.type ==="Point"&&feature.properties) {
+      marker.on('mouseover', function (e) {
+        marker.togglePopup();
+      });
+      marker.on('mouseout', function (e) {
+        marker.closePopup();
+      });
+      marker.on('click',(e)=>{
+        this.state.map.setView(e.target.getLatLng(),14);
+      },);
+    }
   }
   zoomToFeature(target) {
     var fitBoundsParams = {
@@ -213,6 +299,80 @@ export default class Map extends Component{
     };
     Object.getOwnPropertyNames(target.getBounds()).length>0?
     this.state.map.fitBounds(target.getBounds(), fitBoundsParams):null;
+  }
+  afficherArrets(){
+    let arretQueryString = '';
+    this.state.scooterSelected.map((instance)=>{
+      arretQueryString = arretQueryString.concat('deviceId=',instance["value"],'&');
+    })
+    let dateDebut = this.refs.arrets_date_debut.state.inputValue;
+    let dateFin = this.refs.arrets_date_fin.state.inputValue;
+    if(dateDebut&&dateFin){
+      arretQueryString = arretQueryString + "from="+new Date(dateDebut).toISOString()+'&'+'to='+new Date(dateFin).toISOString();
+    }
+    let urlsArrets = "http://vps92599.ovh.net:8082/api/reports/stops?"+arretQueryString;
+    let urls = [urlsArrets];
+    console.log("urlsArrets",urlsArrets);
+    var promises = urls.map(url =>fetch(url,{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()));
+    Promise.all(promises)
+    .then(results => {this.formatScooterArrets(results);})
+    .catch(err=>{console.log(err);});
+  }
+  formatScooterArrets(data){
+    console.log(data);
+    let urlPositions = "http://vps92599.ovh.net:8082/api/positions?";
+    let positionTime = {};
+    let deviceName = {};
+    data[0].map((instance,index)=>{
+      if (index !== 0) {
+        urlPositions = urlPositions.concat('&');
+      }
+      urlPositions = urlPositions.concat('id=',instance["positionId"]);
+      positionTime[instance["positionId"]] = instance["duration"];
+      deviceName[instance["deviceId"]] = instance["deviceName"];
+    })
+    console.log(urlPositions);
+    let urls = [urlPositions];
+    var promises = urls.map(url =>fetch(url,{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()));
+    Promise.all(promises)
+    .then(results => {this.formatArretsPositions(results,positionTime,deviceName);})
+    .catch(err=>{console.log(err);});
+  }
+  formatArretsPositions(data,positionTime,deviceName){
+    let arretsGeojson = {
+      type:"FeatureCollection",
+      features :[]
+    };
+    let colorMap = {};
+    this.state.scooterSelected.map((instance,index)=>{
+      colorMap[instance["value"]] = colorList[index];
+    });
+    data[0].map((instance,index)=>{
+      let date = new Date(instance["deviceTime"]);
+      let template ={
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "color" : colorMap[instance["deviceId"]],
+          "coordinates": [instance["longitude"],instance["latitude"]]
+        },
+        "properties": {
+          "duration" : positionTime[instance["id"]],
+          "course" : instance["course"],
+          "address" : instance["address"],
+          "date" : date.toLocaleDateString(),
+          "time" : date.toLocaleTimeString(),
+          "deviceName" : deviceName[instance["deviceId"]],
+          "positionId" : instance["id"],
+          "scooterGeodataIndex" : index,
+          "deviceId" : instance["deviceId"]
+        }
+      }
+      arretsGeojson['features'].push(template);
+    })
+    this.setState({
+      arretsGeojson : arretsGeojson
+    })
   }
   updateScooterDataFromServer(){
     let urls = ["http://vps92599.ovh.net:8082/api/devices","http://vps92599.ovh.net:8082/api/groups","http://vps92599.ovh.net:8082/api/positions"];
@@ -285,7 +445,8 @@ export default class Map extends Component{
             "name" : scooterDetails["name"],
             "address" : scooterDetails["address"],
             "status" : scooterDetails["status"],
-            "scooterGeodataIndex" : index
+            "scooterGeodataIndex" : index,
+            "id" : scooterDetails["id"]
           }
         }
         let timeString = null;
@@ -297,7 +458,7 @@ export default class Map extends Component{
           timeString = timeDifs?(timeDifs>=60?(timeDifs>=1440?(timeDifs/1440).toFixed(1)+' Days ago':(timeDifs/60).toFixed(1)+' Hours ago'):(timeDifs)+' Minutes ago'):null;
         }
         let scooterListData = {
-          "value":scooterDetails["name"],
+          "value":scooterDetails["id"],
           "label":scooterDetails["name"],
           "updateTime":timeString?timeString:"Unknown",
           "status":scooterDetails["status"]?scooterDetails["status"]:"to be getted"
@@ -443,6 +604,49 @@ export default class Map extends Component{
                 onChange = {this.handleSelectChange}
               />
             </div>
+          </div>
+          <div>
+            <Nav tabs>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '1' })}
+                  onClick={() => { this.toggle('1'); }}
+                >
+                  Arrêts
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '2' })}
+                  onClick={() => { this.toggle('2'); }}
+                >
+                  Parcours
+                </NavLink>
+              </NavItem>
+            </Nav>
+            <TabContent activeTab={this.state.activeTab}>
+              <TabPane tabId="1">
+                <div style={{height : "340px"}}>
+                  <div className="row">
+                    <div className="form-group col-sm-12">
+                      <label htmlFor="rapport_mois">Selectionner la date debut</label>
+                      <DateTime ref = "arrets_date_debut"/>
+                    </div>
+                    <div className="form-group col-sm-12">
+                      <label htmlFor="rapport_mois">Selectionner la date fin</label>
+                      <DateTime ref = "arrets_date_fin"/>
+                    </div>
+                  </div>
+                  <div className="pull-right">
+                    <button type="button" className="btn btn-sm btn-info" onClick={this.clearArretsLayer}>Clear</button>
+                    <button type="button" className="btn btn-sm btn-primary" onClick={this.afficherArrets}>Afficher</button>
+                  </div>
+                </div>
+              </TabPane>
+              <TabPane tabId="2">
+
+              </TabPane>
+            </TabContent>
           </div>
         </div>
         <div className="col-sm-8 col-lg-8">
