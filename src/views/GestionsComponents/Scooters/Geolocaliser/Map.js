@@ -107,7 +107,7 @@ const config = {
     }
   }
 }
-const colorList = ["#cbddb8","#f2cc8c","#c984b0","#8b4aa5","#7f3573","#cbddb8","#f2cc8c","#c984b0","#8b4aa5","#7f3573"];
+const colorList = ["#9c27b0","#303f9f","#ad1457","#8b4aa5","#7f3573","#cbddb8","#f2cc8c","#c984b0","#8b4aa5","#7f3573"];
 export default class Map extends Component{
   constructor(props) {
     super(props);
@@ -188,6 +188,7 @@ export default class Map extends Component{
     var cur = this;
     if(feature.geometry.type ==="Point"){
       var markers = this.markerAndIcons(feature.properties.markerAndIcons?feature.properties.markerAndIcons:null);
+      markers = markers + `<div class="scooterNameTag">${feature.properties.name}</div>`;
       var testMarker = L.marker(latlng,{icon: L.divIcon({className: 'markers', html:markers, iconSize:[35,35],iconAnchor : [17,42]}),riseOnHover:true})
                         .on('click',(e)=>{
                           cur.setState({
