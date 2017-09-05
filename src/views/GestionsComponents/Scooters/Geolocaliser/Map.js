@@ -125,7 +125,6 @@ export default class Map extends Component{
     this.toggle = this.toggle.bind(this);
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
-    this.refreshCountDownInterval;
     this.afficherArrets = this.afficherArrets.bind(this);
     this.addGeoJSONLayer = this.addGeoJSONLayer.bind(this);
     this.clearArretsLayer = this.clearArretsLayer.bind(this);
@@ -719,6 +718,9 @@ class CountDown extends Component{
     this.refreshCountDownInterval = setInterval(()=>{
       this.mapRefreshCountDown();
     },1000);
+  }
+  componentWillUnmount(){
+    clearInterval(this.refreshCountDownInterval);
   }
   mapRefreshCountDown(){
     let current = this.state.countDown;
