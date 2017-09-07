@@ -116,8 +116,10 @@ export default class Map extends Component{
       map : null,
       geoData : {type:"FeatureCollection",features:[]},
       arretsGeojson :  {type:"FeatureCollection",features:[]},
+      routesGeojson : {type:"FeatureCollection",features:[]},
       geojsonLayer : null,
       arretsLayer : null,
+      routesLayer : null,
       scooterNumClicked : null,
       scooterSelected : [],
       scooterList : []
@@ -126,15 +128,19 @@ export default class Map extends Component{
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
     this.afficherArrets = this.afficherArrets.bind(this);
+    this.afficherRoutes = this.afficherRoutes.bind(this);
     this.addGeoJSONLayer = this.addGeoJSONLayer.bind(this);
     this.clearArretsLayer = this.clearArretsLayer.bind(this);
     this.addArretsLayer = this.addArretsLayer.bind(this);
+    this.addRoutesLayer = this.addRoutesLayer.bind(this);
+    this.clearRoutesLayer = this.clearRoutesLayer.bind(this);
     this.pointToLayer = this.pointToLayer.bind(this);
     this.pointToLayerArret = this.pointToLayerArret.bind(this);
     this.onEachFeature = this.onEachFeature.bind(this);
     this.onEachFeatureArret = this.onEachFeatureArret.bind(this);
     this.filterFeatures = this.filterFeatures.bind(this);
     this.formatArretsPositions = this.formatArretsPositions.bind(this);
+    this.formatScooterRoutes = this.formatScooterRoutes.bind(this);
     this.zoomToFeature = this.zoomToFeature.bind(this);
     this.handleSelectChange = this.handleSelectChange.bind(this);
   }
@@ -161,6 +167,34 @@ export default class Map extends Component{
         activeTab: tab
       });
     }
+  }
+  addRoutesLayer(geojson){
+    let cur = this;
+    let routesLayer;
+    console.log("addRoutesLayer",geojson);
+    if (!this.state.routesLayer&&geojson["features"].length>0) {
+      routesLayer = L.geoJson(geojson, {
+        style: this.routeStyle
+      });
+      routesLayer.addTo(this.state.map);
+      geojson["features"].length>0?cur.zoomToFeature(routesLayer):null;
+      this.setState({
+        routesLayer:routesLayer
+      })
+    }else if(this.state.routesLayer) {
+      this.state.routesLayer.clearLayers();
+      this.state.routesLayer.addData(geojson);
+      //geojson["features"].length>0?cur.zoomToFeature(geojsonLayer):null;
+    }
+  }
+  clearRoutesLayer(){
+    this.state.routesLayer.clearLayers();
+    this.setState({
+      isSymbol : false
+    })
+  }
+  routeStyle(feature) {
+    return {color: feature.geometry.color};
   }
   addGeoJSONLayer(geojson) {
     let cur = this;
@@ -372,6 +406,61 @@ export default class Map extends Component{
     })
     this.addArretsLayer(arretsGeojson);
   }
+  afficherRoutes(){
+    let arretQueryString = '';
+    this.state.scooterSelected.map((instance)=>{
+      arretQueryString = arretQueryString.concat('deviceId=',instance["value"],'&');
+    })
+    let dateDebut = this.refs.routes_date_debut.state.inputValue;
+    let dateFin = this.refs.routes_date_fin.state.inputValue;
+    if(dateDebut&&dateFin){
+      arretQueryString = arretQueryString + "from="+new Date(dateDebut).toISOString()+'&'+'to='+new Date(dateFin).toISOString();
+    }
+    let urlsArrets = "http://vps92599.ovh.net:8082/api/reports/route?"+arretQueryString;
+    let urls = [urlsArrets];
+    console.log("urlsArrets",urlsArrets);
+    var promises = urls.map(url =>fetch(url,{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()));
+    Promise.all(promises)
+    .then(results => {this.formatScooterRoutes(results);})
+    .catch(err=>{console.log(err);});
+  }
+  formatScooterRoutes(data){
+    let routesGeojson = {
+      type:"FeatureCollection",
+      features :[]
+    };
+    let colorMap = {};
+    let lineIndex = [];
+    this.state.scooterSelected.map((instance,index)=>{
+      colorMap[instance["value"]] = colorList[index];
+    });
+    data[0].map((instance,index)=>{
+      let date = new Date(instance["deviceTime"]);
+      if(lineIndex.indexOf(instance["deviceId"])===-1){
+        lineIndex.push(instance["deviceId"]);
+        let template ={
+          "type": "Feature",
+          "geometry": {
+            "type": "LineString",
+            "color" : colorMap[instance["deviceId"]],
+            "coordinates": [[instance["longitude"],instance["latitude"]]]
+          },
+          "properties": {
+            "deviceId" : instance["deviceId"]
+          }
+        }
+        routesGeojson['features'].push(template);
+      }else {
+        routesGeojson['features'][lineIndex.indexOf(instance["deviceId"])]["geometry"]["coordinates"].push([instance["longitude"],instance["latitude"]]);
+      }
+    })
+    this.setState({
+      routesGeojson : routesGeojson,
+      isSymbol : true
+    })
+    console.log(routesGeojson);
+    this.addRoutesLayer(routesGeojson);
+  }
   updateScooterDataFromServer(){
     let urls = ["http://vps92599.ovh.net:8082/api/devices","http://vps92599.ovh.net:8082/api/groups","http://vps92599.ovh.net:8082/api/positions"];
     var promises = urls.map(url =>fetch(url,{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()));
@@ -472,8 +561,8 @@ export default class Map extends Component{
   }
   markerAndIcons(info){
     ////console.log("info",info);
-    var markerAndIconsString = "";
-    var iconNum = info?info.length:0;
+    let markerAndIconsString = "";
+    let iconNum = info?info.length:0;
     if(info){
       for(var i=0;i<iconNum;i++){
         markerAndIconsString = markerAndIconsString.concat(this.generateIcon(
@@ -634,15 +723,31 @@ export default class Map extends Component{
                       <label htmlFor="rapport_mois">Selectionner la date fin</label>
                       <DateTime ref = "arrets_date_fin"/>
                     </div>
-                  </div>
-                  <div className="pull-right">
-                    <button type="button" className="btn btn-sm btn-info" onClick={this.clearArretsLayer}>Clear</button>
-                    <button type="button" className="btn btn-sm btn-primary" onClick={this.afficherArrets}>Afficher</button>
+                    <div className="col">
+                      <button type="button" className="btn btn-sm btn-primary" onClick={this.afficherArrets}>Afficher</button>
+                      <button type="button" className="btn btn-sm btn-info" onClick={this.clearArretsLayer}>Clear</button>
+                    </div>
                   </div>
                 </div>
               </TabPane>
               <TabPane tabId="2">
-
+                <div style={{height : "340px"}}>
+                  <div className="row">
+                    <div className="form-group col-sm-12">
+                      <label htmlFor="rapport_mois">Selectionner la date debut</label>
+                      <DateTime ref = "routes_date_debut"/>
+                    </div>
+                    <div className="form-group col-sm-12">
+                      <label htmlFor="rapport_mois">Selectionner la date fin</label>
+                      <DateTime ref = "routes_date_fin"/>
+                    </div>
+                    <div className="col">
+                      <button type="button" className="btn btn-sm btn-primary" onClick={this.afficherRoutes}>Afficher</button>
+                      <button type="button" className="btn btn-sm btn-info" onClick={this.clearRoutesLayer}>Clear</button>
+                    </div>
+                  </div>
+                  {this.state.isSymbol?<RouteSymbol scooterSelected={this.state.scooterSelected}/>:null}
+                </div>
               </TabPane>
             </TabContent>
           </div>
@@ -732,6 +837,23 @@ class CountDown extends Component{
   render () {
 		return (
       <span>{this.state.countDown}</span>
+		);
+	}
+}
+
+class RouteSymbol extends Component{
+  constructor(props){
+    super(props);
+  }
+  render () {
+		return (
+      <div className="row">
+      {
+        this.props.scooterSelected.map((value,index)=>{
+          return <button type="button" className="btn btn-sm btn-info" style={{ backgroundColor :colorList[index]}}>{value['label']}</button>
+        })
+      }
+    </div>
 		);
 	}
 }
