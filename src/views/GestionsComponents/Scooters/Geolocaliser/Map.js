@@ -121,6 +121,7 @@ export default class Map extends Component{
       arretsLayer : null,
       routesLayer : null,
       scooterNumClicked : null,
+      isSymbol : true,
       scooterSelected : [],
       scooterList : []
     }
@@ -710,6 +711,14 @@ export default class Map extends Component{
                   Parcours
                 </NavLink>
               </NavItem>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '3' })}
+                  onClick={() => { this.toggle('3'); }}
+                >
+                  Geofence
+                </NavLink>
+              </NavItem>
             </Nav>
             <TabContent activeTab={this.state.activeTab}>
               <TabPane tabId="1">
@@ -747,6 +756,13 @@ export default class Map extends Component{
                     </div>
                   </div>
                   {this.state.isSymbol?<RouteSymbol scooterSelected={this.state.scooterSelected}/>:null}
+                </div>
+              </TabPane>
+              <TabPane tabId="3">
+                <div style={{height : "340px"}}>
+                  <div className="row">
+                    
+                  </div>
                 </div>
               </TabPane>
             </TabContent>
@@ -848,11 +864,19 @@ class RouteSymbol extends Component{
   render () {
 		return (
       <div className="row">
-      {
-        this.props.scooterSelected.map((value,index)=>{
-          return <button type="button" className="btn btn-sm btn-info" style={{ backgroundColor :colorList[index]}}>{value['label']}</button>
-        })
-      }
+        <div className="col">
+          {
+            this.props.scooterSelected.length>0?
+            <div>
+              Route Legends:
+            </div>:null
+          }
+          {
+            this.props.scooterSelected.map((value,index)=>{
+              return <button type="button" className="btn btn-sm btn-info" style={{ backgroundColor :colorList[index]}}>{value['label']}</button>
+            })
+          }
+        </div>
     </div>
 		);
 	}
