@@ -5,7 +5,8 @@ import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 import 'react-datetime/css/react-datetime.css'
 import DateTime from 'react-datetime';
-import { TabContent, TabPane, Nav, NavItem, NavLink } from 'reactstrap';
+import { TabContent, TabPane, Nav, NavItem, NavLink, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 (function(window, document, undefined) {
     L.MyMarkers = {};
     L.MyMarkers.version = "1.0.1";
@@ -114,18 +115,27 @@ export default class Map extends Component{
     this.state = {
       activeTab : null,
       map : null,
+      isModifierGeofenceModal : false,
+      isAddGeofenceModal : false,
+      isDeleteGeofenceModal : false,
       geoData : {type:"FeatureCollection",features:[]},
       arretsGeojson :  {type:"FeatureCollection",features:[]},
       routesGeojson : {type:"FeatureCollection",features:[]},
       geojsonLayer : null,
+      geofenceLayer : [],
       arretsLayer : null,
       routesLayer : null,
       scooterNumClicked : null,
       isSymbol : true,
       scooterSelected : [],
-      scooterList : []
+      scooterList : [],
+      geofenceData : []
     }
     this.toggle = this.toggle.bind(this);
+    this.toggleModifierGeofenceModal = this.toggleModifierGeofenceModal.bind(this);
+    this.toggleAddGeofenceModal = this.toggleAddGeofenceModal.bind(this);
+    this.toggleDeleteGeofenceModal = this.toggleDeleteGeofenceModal.bind(this);
+    this.selectGeofence = this.selectGeofence.bind(this);
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
     this.afficherArrets = this.afficherArrets.bind(this);
@@ -134,6 +144,7 @@ export default class Map extends Component{
     this.clearArretsLayer = this.clearArretsLayer.bind(this);
     this.addArretsLayer = this.addArretsLayer.bind(this);
     this.addRoutesLayer = this.addRoutesLayer.bind(this);
+    this.addGeofenceLayer = this.addGeofenceLayer.bind(this);
     this.clearRoutesLayer = this.clearRoutesLayer.bind(this);
     this.pointToLayer = this.pointToLayer.bind(this);
     this.pointToLayerArret = this.pointToLayerArret.bind(this);
@@ -142,8 +153,12 @@ export default class Map extends Component{
     this.filterFeatures = this.filterFeatures.bind(this);
     this.formatArretsPositions = this.formatArretsPositions.bind(this);
     this.formatScooterRoutes = this.formatScooterRoutes.bind(this);
+    this.formatGeofence = this.formatGeofence.bind(this);
     this.zoomToFeature = this.zoomToFeature.bind(this);
     this.handleSelectChange = this.handleSelectChange.bind(this);
+    this.updateGeofence = this.updateGeofence.bind(this);
+    this.addGeofence = this.addGeofence.bind(this);
+    this.deleteGeofence = this.deleteGeofence.bind(this);
   }
   componentDidMount() {
     this.init(this._mapNode);
@@ -163,11 +178,147 @@ export default class Map extends Component{
     this.state.map.remove();
   }
   toggle(tab) {
+    if(tab!=='3'){
+      this.state.geofenceLayer.map((instance)=>{
+        instance.remove();
+      })
+      this.setState({
+        geofenceLayer: []
+      });
+    }
     if (this.state.activeTab !== tab) {
       this.setState({
         activeTab: tab
       });
     }
+  }
+  toggleModifierGeofenceModal(){
+    //console.log("toggleModifierGeofenceModal",this.state.isModifierGeofenceModal);
+    this.setState({
+      isModifierGeofenceModal: !this.state.isModifierGeofenceModal
+    });
+  }
+  toggleAddGeofenceModal(){
+    this.setState({
+      isAddGeofenceModal: !this.state.isAddGeofenceModal
+    });
+  }
+  toggleDeleteGeofenceModal(){
+    this.setState({
+      isDeleteGeofenceModal: !this.state.isDeleteGeofenceModal
+    });
+  }
+  selectGeofence(e){
+    this.refs.longitude.disabled = false;
+    this.refs.latitude.disabled = false;
+    this.refs.radius.disabled = false;
+    this.refs.name.disabled = false;
+    this.refs.longitude.value = this.state.geofenceData[e.target.value]["area"][0];
+    this.refs.latitude.value = this.state.geofenceData[e.target.value]["area"][1];
+    this.refs.radius.value = this.state.geofenceData[e.target.value]["area"][2];
+    this.refs.name.value = this.state.geofenceData[e.target.value]["name"];
+  }
+  addGeofence(){
+    const queryMethod = "POST";
+    let urlGeofences = "http://vps92599.ovh.net:8082/api/geofences";
+    let data = {
+      "attributes":{},
+      "name":this.refs.name.value,
+      "description":"",
+      "area":"CIRCLE ("+this.refs.longitude.value+" "+this.refs.latitude.value+", "+this.refs.radius.value+")",
+      "calendarId":0
+    };
+    console.log("updateGeofence",data);
+    fetch(urlGeofences,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	}),
+      credentials : "include"
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isAddGeofenceSuccess : false
+          })
+        }else {
+          this.state.geofenceLayer.map((instance)=>{
+            instance.remove();
+          })
+          this.toggleAddGeofenceModal();
+          this.afficherGeofences();
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  updateGeofence(){
+    const queryMethod = "PUT";
+    let urlGeofences = "http://vps92599.ovh.net:8082/api/geofences/"+this.state.geofenceData[this.refs.geofenceId.value]["id"];
+    let data = {
+      "id":this.state.geofenceData[this.refs.geofenceId.value]["id"],
+      "attributes":this.state.geofenceData[this.refs.geofenceId.value]["attributes"],
+      "name":this.refs.name.value,
+      "description":this.state.geofenceData[this.refs.geofenceId.value]["description"],
+      "area":"CIRCLE ("+this.refs.longitude.value+" "+this.refs.latitude.value+", "+this.refs.radius.value+")",
+      "calendarId":this.state.geofenceData[this.refs.geofenceId.value]["calendarId"]
+    };
+    console.log("updateGeofence",data);
+    fetch(urlGeofences,{
+      method: queryMethod,
+      body: JSON.stringify(data),
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	}),
+      credentials : "include"
+    })
+    .then(
+      (response)=>{
+        if(response.status!==200){
+          console.log("error");
+          this.setState({
+            isModifierGeofenceModalSuccess : false
+          })
+        }else {
+          this.state.geofenceLayer.map((instance)=>{
+            instance.remove();
+          })
+          this.toggleModifierGeofenceModal();
+          this.afficherGeofences();
+        }
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  deleteGeofence(){
+    const queryMethod = "DELETE";
+    let urlGeofences = "http://vps92599.ovh.net:8082/api/geofences/"+this.state.geofenceData[this.refs.geofenceId.value]["id"];
+    fetch(urlGeofences,{
+      method: queryMethod,
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	}),
+      credentials : "include"
+    })
+    .then(
+      (response)=>{
+        this.state.geofenceLayer.map((instance)=>{
+          instance.remove();
+        })
+        this.toggleDeleteGeofenceModal();
+        this.afficherGeofences();
+      }
+    )
+    .catch((error) => {
+      console.error(error);
+    });
   }
   addRoutesLayer(geojson){
     let cur = this;
@@ -323,6 +474,19 @@ export default class Map extends Component{
       },);
     }
   }
+  addGeofenceLayer(geofenceData){
+    let geofenceLayer = [];
+    geofenceData.map((instance)=>{
+      let area = instance["area"]
+      geofenceLayer.push(L.circle([area[0], area[1]], {radius: area[2]}).bindTooltip(instance["name"],{permanent: true, direction:"center", className : "geofenceName"}).openTooltip());
+    });
+    geofenceLayer.map((instance)=>{
+      instance.addTo(this.state.map);
+    })
+    this.setState({
+      geofenceLayer : geofenceLayer
+    })
+  }
   zoomToFeature(target) {
     var fitBoundsParams = {
       paddingTopLeft: [20,20],
@@ -349,6 +513,35 @@ export default class Map extends Component{
     Promise.all(promises)
     .then(results => {this.formatScooterArrets(results);})
     .catch(err=>{console.log(err);});
+  }
+  afficherGeofences(){
+    let urlsGeofences = "http://vps92599.ovh.net:8082/api/geofences";
+    let urls = [urlsGeofences];
+    var promises = urls.map(url =>fetch(url,{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()));
+    Promise.all(promises)
+    .then(results => {this.formatGeofence(results[0]);})
+    .catch(err=>{console.log(err);});
+  }
+  formatGeofence(data){
+    let res = data
+    console.log(res);
+    let nullIndex = [];
+    res.map((instance,index)=>{
+      if(instance){
+        instance["area"] = instance["area"].replace(/\(+|\)+|\CIRCLE|\,/g,'').split(' ');
+        instance["area"].splice(0,1);
+      }else {
+        nullIndex.unshift(index);
+      }
+    });
+    nullIndex.map((instance)=>{
+      res.splice(instance,1);
+    });
+    console.log("format geofence",res);
+    this.setState({
+      geofenceData : res
+    });
+    this.addGeofenceLayer(res);
   }
   formatScooterArrets(data){
     console.log(data);
@@ -560,6 +753,15 @@ export default class Map extends Component{
       scooterList : scooterList
     });
   }
+  areaFormatter(cell,row){
+    return (
+      <div className="" style={{'fontSize' : 14 + "px","textOverflow": "ellipsis"}}>
+        <span className="">{"LON: "+parseFloat(cell[0]).toFixed(2)+'\t'}</span>
+        <span className="">{"LAT: "+parseFloat(cell[1]).toFixed(2)+'\t'}</span>
+        <span className="">{"RD: "+(parseFloat(cell[2])/1000).toFixed(1)+ 'KM'}</span>
+      </div>
+    );
+  }
   markerAndIcons(info){
     ////console.log("info",info);
     let markerAndIconsString = "";
@@ -579,6 +781,20 @@ export default class Map extends Component{
       markerAndIconsString = this.generateIcon();
     }
     return markerAndIconsString;
+  }
+  renderSizePerPageDropDown = props => {
+    return (
+      <div className='btn-group'>
+        {
+          [ 4, 6, 8 ].map((n, idx) => {
+            const isActive = (n === props.currSizePerPage) ? 'active' : null;
+            return (
+              <button key={ idx } type='button' className={ `btn btn-info ${isActive}` } onClick={ () => props.changeSizePerPage(n) }>{ n }</button>
+            );
+          })
+        }
+      </div>
+    );
   }
   generateIcon(count,iconIndex,iconStyle,color,className,number){
     var template = {
@@ -642,6 +858,10 @@ export default class Map extends Component{
 		this.setState({ scooterSelected : value });
 	}
   render(){
+    const optionsGeofence = {
+      sizePerPage: 4,
+      sizePerPageDropDown: this.renderSizePerPageDropDown,
+    }
     const mileage = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['mileage']:'...';
     const name = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:"...";
     const address = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['address']:'...';
@@ -714,7 +934,7 @@ export default class Map extends Component{
               <NavItem>
                 <NavLink
                   className={classnames({ active: this.state.activeTab === '3' })}
-                  onClick={() => { this.toggle('3'); }}
+                  onClick={() => { this.toggle('3'); this.afficherGeofences()}}
                 >
                   Geofence
                 </NavLink>
@@ -761,7 +981,125 @@ export default class Map extends Component{
               <TabPane tabId="3">
                 <div style={{height : "340px"}}>
                   <div className="row">
-                    
+                    <button type="button" className="btn col-sm-3 btn-primary" onClick={this.toggleAddGeofenceModal}>Ajouter</button>
+                    <button type="button" className="btn col-sm-3 btn-info" onClick={this.toggleModifierGeofenceModal}>Modifier</button>
+                    <button type="button" className="btn col-sm-3 btn-success">Assigner</button>
+                    <button type="button" className="btn col-sm-3 btn-danger" onClick={this.toggleDeleteGeofenceModal}>Supprimer</button>
+                    <BootstrapTable
+                      options = {optionsGeofence}
+                      data={ this.state.geofenceData }
+                      headerStyle = { { "backgroundColor" : "#63c2de" } }
+                      height = "250px"
+                      pagination>
+                      <TableHeaderColumn
+                        dataField="name"
+                        isKey
+                        dataSort
+                        tdStyle = {{"textOverflow": "ellipsis"}}
+                        width = "30%">
+                        Nom
+                      </TableHeaderColumn>
+                      <TableHeaderColumn
+                        dataField="area"
+                        dataSort
+                        tdStyle = {{"textOverflow": "ellipsis"}}
+                        dataFormat = {this.areaFormatter}>
+                        Area
+                      </TableHeaderColumn>
+                    </BootstrapTable>
+                    <Modal isOpen={this.state.isModifierGeofenceModal} toggle={this.toggleModifierGeofenceModal}>
+                      <ModalHeader toggle={this.toggleModifierGeofenceModal}>Modifier un Geofence</ModalHeader>
+                      <ModalBody>
+                        <div>
+                          <div className="row">
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="id">Nom</label>
+                              <select className="form-control" ref='geofenceId' id="name" placeholder="Nom" defaultValue='selectionner un geofence' onChange = {(e)=>this.selectGeofence(e)}>
+                                <option disabled value='selectionner un geofence'> -- selectionner un geofence -- </option>
+                                {
+                                  this.state.geofenceData.map((instance,index)=>{
+                                    return <option value={index}>{'Geofence: '+instance['name']}</option>
+                                  })
+                                }
+                              </select>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="nom">Nom</label>
+                              <input type="text" disabled ref='name' className="form-control" id="name" placeholder="Nom"/>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="nom">Longitude</label>
+                              <input type="text" disabled ref='longitude' className="form-control" id="longitude" placeholder="Longitude"/>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="durée">Latitude</label>
+                              <input type="text" disabled ref='latitude' className="form-control" id="latitude" placeholder="Latitude"/>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="tarifmensuel">Radius / Metre</label>
+                              <input type="text" disabled ref='radius' className="form-control" id="radius" placeholder="Radius"/>
+                            </div>
+                          </div>
+                        </div>
+                      </ModalBody>
+                      <ModalFooter>
+                        <button type="button" className="btn btn-sm btn-success" onClick={this.updateGeofence}>Submit</button>
+                        <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleModifierGeofenceModal}>Cancel</button>
+                      </ModalFooter>
+                    </Modal>
+                    <Modal isOpen={this.state.isDeleteGeofenceModal} toggle={this.toggleDeleteGeofenceModal}>
+                      <ModalHeader toggle={this.toggleDeleteGeofenceModal}>Supprimer un Geofence</ModalHeader>
+                      <ModalBody>
+                        <div>
+                          <div className="row">
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="id">Nom</label>
+                              <select className="form-control" ref='geofenceId' id="name" placeholder="Nom" defaultValue='selectionner un geofence'>
+                                <option disabled value='selectionner un geofence'> -- selectionner un geofence -- </option>
+                                {
+                                  this.state.geofenceData.map((instance,index)=>{
+                                    return <option value={index}>{'Geofence: '+instance['name']}</option>
+                                  })
+                                }
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </ModalBody>
+                      <ModalFooter>
+                        <button type="button" className="btn btn-sm btn-success" onClick={this.deleteGeofence}>Submit</button>
+                        <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleDeleteGeofenceModal}>Cancel</button>
+                      </ModalFooter>
+                    </Modal>
+                    <Modal isOpen={this.state.isAddGeofenceModal} toggle={this.toggleAddGeofenceModal}>
+                      <ModalHeader toggle={this.toggleAddGeofenceModal}>Ajouter un Geofence</ModalHeader>
+                      <ModalBody>
+                        <div>
+                          <div className="row">
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="nom">Nom</label>
+                              <input type="text" ref='name' className="form-control" id="name" placeholder="Nom"/>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="nom">Longitude</label>
+                              <input type="text" ref='longitude' className="form-control" id="longitude" placeholder="Longitude"/>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="durée">Latitude</label>
+                              <input type="text" ref='latitude' className="form-control" id="latitude" placeholder="Latitude"/>
+                            </div>
+                            <div className="form-group col-sm-12">
+                              <label htmlFor="tarifmensuel">Radius / Metre</label>
+                              <input type="text" ref='radius' className="form-control" id="radius" placeholder="Radius"/>
+                            </div>
+                          </div>
+                        </div>
+                      </ModalBody>
+                      <ModalFooter>
+                        <button type="button" className="btn btn-sm btn-success" onClick={this.addGeofence}>Submit</button>
+                        <button type="button" className="btn btn-sm btn-secondary" onClick={this.toggleAddGeofenceModal}>Cancel</button>
+                      </ModalFooter>
+                    </Modal>
                   </div>
                 </div>
               </TabPane>
