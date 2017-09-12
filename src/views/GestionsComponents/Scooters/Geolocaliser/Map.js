@@ -129,7 +129,8 @@ export default class Map extends Component{
       isSymbol : true,
       scooterSelected : [],
       scooterList : [],
-      geofenceData : []
+      geofenceData : [],
+      scooterEnterInfoData : []
     }
     this.toggle = this.toggle.bind(this);
     this.toggleModifierGeofenceModal = this.toggleModifierGeofenceModal.bind(this);
@@ -138,6 +139,7 @@ export default class Map extends Component{
     this.selectGeofence = this.selectGeofence.bind(this);
     this.init = this.init.bind(this);
     this.updateScooterDataInterval;
+    this.updateScooterEnterInfoInterval;
     this.afficherArrets = this.afficherArrets.bind(this);
     this.afficherRoutes = this.afficherRoutes.bind(this);
     this.addGeoJSONLayer = this.addGeoJSONLayer.bind(this);
@@ -156,9 +158,12 @@ export default class Map extends Component{
     this.formatGeofence = this.formatGeofence.bind(this);
     this.zoomToFeature = this.zoomToFeature.bind(this);
     this.handleSelectChange = this.handleSelectChange.bind(this);
+    this.areaNameFormatter = this.areaNameFormatter.bind(this);
+    this.deviceNameFormatter = this.deviceNameFormatter.bind(this);
     this.updateGeofence = this.updateGeofence.bind(this);
     this.addGeofence = this.addGeofence.bind(this);
     this.deleteGeofence = this.deleteGeofence.bind(this);
+    this.getLatestEnterInfo = this.getLatestEnterInfo.bind(this);
   }
   componentDidMount() {
     this.init(this._mapNode);
@@ -175,6 +180,7 @@ export default class Map extends Component{
   }
   componentWillUnmount() {
     clearInterval(this.updateScooterDataInterval);
+    clearInterval(this.updateScooterEnterInfoInterval);
     this.state.map.remove();
   }
   toggle(tab) {
@@ -185,6 +191,14 @@ export default class Map extends Component{
       this.setState({
         geofenceLayer: []
       });
+    }
+    if(tab!=='4'){
+      clearInterval(this.updateScooterEnterInfoInterval)
+    }else {
+      this.getLatestEnterInfo();
+      this.updateScooterDataInterval = setInterval(()=>{
+        this.getLatestEnterInfo();
+      },30000);
     }
     if (this.state.activeTab !== tab) {
       this.setState({
@@ -316,6 +330,29 @@ export default class Map extends Component{
         this.afficherGeofences();
       }
     )
+    .catch((error) => {
+      console.error(error);
+    });
+  }
+  getLatestEnterInfo(){
+    const queryMethod = "GET";
+    let timeNow = new Date();
+    let timeTenMintesAgo = new Date();
+    timeTenMintesAgo.setMinutes(timeTenMintesAgo.getMinutes()-10);
+    let urlEnterInfo = "http://vps92599.ovh.net:8082/api/reports/events?groupId=1&type=geofenceEnter&from=2017-09-01T13%3A42%3A57.000Z&to=2017-09-11T14%3A12%3A57.000Z";
+    //let urlEnterInfo = "http://vps92599.ovh.net:8082/api/reports/events?groupId=1&type=geofenceEnter&from="+timeTenMintesAgo.toISOString()+"&to="+timeNow.toISOString();
+    fetch(urlEnterInfo,{
+      method: queryMethod,
+      headers: new Headers({
+    		'Content-Type': 'application/json'
+    	}),
+      credentials : "include"
+    }).then((response) => response.json())
+    .then((responseJson)=>{
+      this.setState({
+        scooterEnterInfoData : responseJson
+      })
+    })
     .catch((error) => {
       console.error(error);
     });
@@ -762,6 +799,25 @@ export default class Map extends Component{
       </div>
     );
   }
+  deviceNameFormatter(cell){
+    let deveiceName;
+    this.state.scooterList.map((instance)=>{
+      if(instance["value"]===cell) deveiceName = instance["label"];
+    });
+    return 'Scooter '+deveiceName;
+  }
+  areaNameFormatter(cell){
+    let areaName;
+    this.state.geofenceData.map((instance)=>{
+      if(instance["id"]===cell) areaName = instance["name"];
+    });
+    return areaName;
+  }
+  updateTimeFormatter(cell){
+    let t = new Date();
+    let tt = new Date(cell);
+    return ((t.getTime()-tt.getTime())/1000/60).toFixed(1) + ' Minites';
+  }
   markerAndIcons(info){
     ////console.log("info",info);
     let markerAndIconsString = "";
@@ -786,7 +842,7 @@ export default class Map extends Component{
     return (
       <div className='btn-group'>
         {
-          [ 4, 6, 8 ].map((n, idx) => {
+          [ 1, 2, 3 ].map((n, idx) => {
             const isActive = (n === props.currSizePerPage) ? 'active' : null;
             return (
               <button key={ idx } type='button' className={ `btn btn-info ${isActive}` } onClick={ () => props.changeSizePerPage(n) }>{ n }</button>
@@ -859,9 +915,15 @@ export default class Map extends Component{
 	}
   render(){
     const optionsGeofence = {
-      sizePerPage: 4,
+      sizePerPage: 3,
       sizePerPageDropDown: this.renderSizePerPageDropDown,
-    }
+    };
+    const optionsEntre = {
+      sizePerPage: 3,
+      sizePerPageDropDown: this.renderSizePerPageDropDown,
+      sortName: "serverTime",
+      sortOrder: "desc",
+    };
     const mileage = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['mileage']:'...';
     const name = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:"...";
     const address = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['address']:'...';
@@ -937,6 +999,14 @@ export default class Map extends Component{
                   onClick={() => { this.toggle('3'); this.afficherGeofences()}}
                 >
                   Geofence
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  className={classnames({ active: this.state.activeTab === '4' })}
+                  onClick={() => { this.toggle('4');}}
+                >
+                  Entrée Info
                 </NavLink>
               </NavItem>
             </Nav>
@@ -1102,6 +1172,35 @@ export default class Map extends Component{
                     </Modal>
                   </div>
                 </div>
+              </TabPane>
+              <TabPane tabId="4">
+                <BootstrapTable
+                  options = {optionsEntre}
+                  data={ this.state.scooterEnterInfoData }
+                  headerStyle = { { "backgroundColor" : "#63c2de" } }
+                  height = "250px"
+                  pagination>
+                  <TableHeaderColumn
+                    dataField="deviceId"
+                    isKey
+                    dataSort
+                    width = "30%"
+                    dataFormat = {this.deviceNameFormatter}>
+                    Nom
+                  </TableHeaderColumn>
+                  <TableHeaderColumn
+                    dataField="geofenceId"
+                    dataSort
+                    dataFormat = {this.areaNameFormatter}>
+                    Area
+                  </TableHeaderColumn>
+                  <TableHeaderColumn
+                    dataField="serverTime"
+                    dataSort
+                    dataFormat = {this.updateTimeFormatter}>
+                    Update
+                  </TableHeaderColumn>
+                </BootstrapTable>
               </TabPane>
             </TabContent>
           </div>
