@@ -130,6 +130,7 @@ export default class Map extends Component{
       scooterSelected : [],
       scooterList : [],
       geofenceData : [],
+      geofenceDataRow : [],
       scooterEnterInfoData : []
     }
     this.toggle = this.toggle.bind(this);
@@ -163,6 +164,7 @@ export default class Map extends Component{
     this.updateGeofence = this.updateGeofence.bind(this);
     this.addGeofence = this.addGeofence.bind(this);
     this.deleteGeofence = this.deleteGeofence.bind(this);
+    this.getGeofencesForEnter = this.getGeofencesForEnter.bind(this);
     this.getLatestEnterInfo = this.getLatestEnterInfo.bind(this);
   }
   componentDidMount() {
@@ -196,6 +198,7 @@ export default class Map extends Component{
       clearInterval(this.updateScooterEnterInfoInterval)
     }else {
       this.getLatestEnterInfo();
+      this.getGeofencesForEnter();
       this.updateScooterDataInterval = setInterval(()=>{
         this.getLatestEnterInfo();
       },30000);
@@ -339,7 +342,7 @@ export default class Map extends Component{
     let timeNow = new Date();
     let timeTenMintesAgo = new Date();
     timeTenMintesAgo.setMinutes(timeTenMintesAgo.getMinutes()-10);
-    let urlEnterInfo = "http://vps92599.ovh.net:8082/api/reports/events?groupId=1&type=geofenceEnter&from=2017-09-01T13%3A42%3A57.000Z&to=2017-09-11T14%3A12%3A57.000Z";
+    let urlEnterInfo = "http://vps92599.ovh.net:8082/api/reports/events?groupId=1&type=geofenceEnter&from=2017-09-01T13%3A42%3A57.000Z&to="+timeNow.toISOString();
     //let urlEnterInfo = "http://vps92599.ovh.net:8082/api/reports/events?groupId=1&type=geofenceEnter&from="+timeTenMintesAgo.toISOString()+"&to="+timeNow.toISOString();
     fetch(urlEnterInfo,{
       method: queryMethod,
@@ -556,7 +559,23 @@ export default class Map extends Component{
     let urls = [urlsGeofences];
     var promises = urls.map(url =>fetch(url,{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()));
     Promise.all(promises)
-    .then(results => {this.formatGeofence(results[0]);})
+    .then(results => {
+      this.setState({
+        geofenceDataRow : results[0]
+      });
+      this.formatGeofence(results[0]);
+    })
+    .catch(err=>{console.log(err);});
+  }
+  getGeofencesForEnter(){
+    let urlsGeofences = "http://vps92599.ovh.net:8082/api/geofences";
+    fetch(urlsGeofences,{credentials: 'include',headers: {'Accept': 'application/json'}})
+    .then(y => y.json())
+    .then(results => {
+      this.setState({
+        geofenceDataRow : results
+      });
+    })
     .catch(err=>{console.log(err);});
   }
   formatGeofence(data){
@@ -808,8 +827,8 @@ export default class Map extends Component{
   }
   areaNameFormatter(cell){
     let areaName;
-    this.state.geofenceData.map((instance)=>{
-      if(instance["id"]===cell) areaName = instance["name"];
+    this.state.geofenceDataRow.map((instance)=>{
+      if(instance&&instance["id"]===cell) areaName = instance["name"];
     });
     return areaName;
   }
