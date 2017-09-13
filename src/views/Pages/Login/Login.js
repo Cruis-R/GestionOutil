@@ -15,17 +15,18 @@ class Login extends Component {
   restoreSession(){
     fetch(urlServer,{
       credentials: 'include'})
-    .then(
-      (response)=>{
-        if(response.status===200){
-          window.location.href = '#/gestions/utilisateurs';
-        }
-      }
-    ).catch(
-      (err)=>{
-        console.log(err);
-      }
-    );
+    .then((response)=>response.json())
+    .then((res)=>{
+      console.log(res);
+      this.setState({
+        isLoginSuccess:true
+      });
+      let accessString = res["admin"]?"1":"0";
+      window.location.href = '#/gestions/utilisateurs?'+accessString;
+    })
+    .catch((err)=>{
+      console.log(err);
+    })
   }
   loginServerTraccar(){
     const queryMethod = "POST";
@@ -40,19 +41,19 @@ class Login extends Component {
     		'Content-Type': 'application/x-www-form-urlencoded'
     	})
     })
-    .then((response)=>{
-      if(response.status===200){
-        this.setState({
-          isLoginSuccess:true
-        });
-        window.location.href = '#/gestions/utilisateurs';
-      }else {
-        this.setState({
-          isLoginSuccess:false
-        });
-      }
+    .then((response)=>response.json())
+    .then((res)=>{
+      console.log(res);
+      this.setState({
+        isLoginSuccess:true
+      });
+      let accessString = res["admin"]?"1":"0";
+      window.location.href = '#/gestions/utilisateurs?'+accessString;
     })
     .catch((err)=>{
+      this.setState({
+        isLoginSuccess:false
+      });
       console.log(err);
     })
   }
@@ -68,11 +69,11 @@ class Login extends Component {
                     <h1>Login</h1>
                     <p className="text-muted">Sign In to your account</p>
                     <div className="input-group mb-3">
-                      <span className="input-group-addon"><i className="icon-user"></i></span>
+                      <span className="input-group-addon"><i className="fa fa-user" style={{width : 30 + "px"}}></i></span>
                       <input type="text" id="username" className="form-control" placeholder="Username"/>
                     </div>
                     <div className="input-group mb-4">
-                      <span className="input-group-addon"><i className="icon-lock"></i></span>
+                      <span className="input-group-addon"><i className="fa fa-lock" style={{width : 30 + "px"}}></i></span>
                       <input type="password" id="password" className="form-control" placeholder="Password"/>
                     </div>
                     <div className="row">
