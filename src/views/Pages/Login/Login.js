@@ -21,7 +21,7 @@ class Login extends Component {
       this.setState({
         isLoginSuccess:true
       });
-      let accessString = res["admin"]?"1":"0";
+      let accessString = res["email"];
       window.location.href = '#/gestions/utilisateurs?'+accessString;
     })
     .catch((err)=>{
@@ -47,7 +47,7 @@ class Login extends Component {
       this.setState({
         isLoginSuccess:true
       });
-      let accessString = res["admin"]?"1":"0";
+      let accessString = res["email"];
       window.location.href = '#/gestions/utilisateurs?'+accessString;
     })
     .catch((err)=>{
