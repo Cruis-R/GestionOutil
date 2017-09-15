@@ -1,0 +1,11 @@
+.report_parent {
+  background: #ffffff;
+}
+.report_header {
+  display: flex;
+  align-items: center;
+}
+.report_header .img_right{
+  height: 154px;
+  background-color: rgb(17, 160, 223);
+}
