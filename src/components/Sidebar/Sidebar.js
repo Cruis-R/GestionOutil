@@ -42,7 +42,27 @@ class Sidebar extends Component {
     .catch((error) => {
       console.error(error);
     });
-    window.location.href = '#/gestions/utilisateurs';
+    switch (access) {
+      case 1:
+        window.location.href = '#/gestions/utilisateurs';
+        break;
+      case 2:
+        window.location.href = '#/gestions/flottes';
+        break;
+      case 3:
+        window.location.href = '#/gestions/scooters';
+        break;
+      case 4:
+        window.location.href = '#/gestions/scooters';
+        break;
+      case 5:
+        window.location.href = '#/gestions/boitiers';
+        break;
+      default:
+        window.location.href = '#/gestions/scooters';
+        break;
+    }
+
   }
   render() {
     return (
