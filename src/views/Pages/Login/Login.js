@@ -22,7 +22,7 @@ class Login extends Component {
         isLoginSuccess:true
       });
       let accessString = res["email"];
-      window.location.href = '#/gestions/utilisateurs?'+accessString;
+      window.location.href = '#/gestions/welcome?'+accessString;
     })
     .catch((err)=>{
       console.log(err);

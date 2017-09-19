@@ -35,33 +35,35 @@ class Sidebar extends Component {
     	})
     }).then((response) => response.json())
     .then((responseJson)=>{
+      let tt = responseJson.length>0?responseJson[0]["profil"]:"";
       this.setState({
-        access : responseJson.length>0?responseJson[0]["profil"]:""
+        access : tt
       })
+      switch (tt) {
+        case 1:
+          window.location.href = '#/gestions/utilisateurs';
+          break;
+        case 2:
+          window.location.href = '#/gestions/flottes';
+          break;
+        case 3:
+          window.location.href = '#/gestions/scooters';
+          break;
+        case 4:
+          window.location.href = '#/gestions/scooters';
+          break;
+        case 5:
+          window.location.href = '#/gestions/boitiers';
+          break;
+        default:
+          window.location.href = '#/gestions/scooters';
+          break;
+      }
     })
     .catch((error) => {
       console.error(error);
     });
-    switch (access) {
-      case 1:
-        window.location.href = '#/gestions/utilisateurs';
-        break;
-      case 2:
-        window.location.href = '#/gestions/flottes';
-        break;
-      case 3:
-        window.location.href = '#/gestions/scooters';
-        break;
-      case 4:
-        window.location.href = '#/gestions/scooters';
-        break;
-      case 5:
-        window.location.href = '#/gestions/boitiers';
-        break;
-      default:
-        window.location.href = '#/gestions/scooters';
-        break;
-    }
+
 
   }
   render() {

@@ -20,6 +20,7 @@ const routes = {
   '/gestions/interventions':'Interventions',
   '/gestions/notifications':'Notifications',
   '/gestions/alertes':'Alertes',
+  '/gestions/welcome':'Welcome',
   '/components/buttons': 'Buttons',
   '/components/social-buttons': 'Social Buttons',
   '/components/cards': 'Cards',

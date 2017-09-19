@@ -35,6 +35,7 @@ import GestionDesFacturations from '../../views/GestionsComponents/Facturations'
 import GestionDesInterventions from '../../views/GestionsComponents/Interventions'
 import GestionDesNotifications from '../../views/GestionsComponents/Notifications'
 import GestionDesAlertes from '../../views/GestionsComponents/Alertes'
+import Welcome from '../../views/GestionsComponents/Welcome'
 
 class Full extends Component {
   render() {
@@ -62,6 +63,7 @@ class Full extends Component {
                 <Route path="/gestions/facturations" name="Facturations" component={GestionDesFacturations}/>
                 <Route path="/gestions/interventions" name="Interventions" component={GestionDesInterventions}/>
                 <Route path="/gestions/notifications" name="Notifications" component={GestionDesNotifications}/>
+                <Route path="/gestions/welcome" name="Welcome" component={Welcome}/>
                 <Route path="/gestions/alertes" name="Alertes" component={GestionDesAlertes}/>
                 <Route path="/components/buttons" name="Buttons" component={Buttons}/>
                 <Route path="/components/cards" name="Cards" component={Cards}/>
@@ -76,6 +78,7 @@ class Full extends Component {
                 <Route path="/widgets" name="Widgets" component={Widgets}/>
                 <Route path="/charts" name="Charts" component={Charts}/>
                 <Redirect from="/" to="/login"/>
+                <Redirect from="/gestions" to="/gestions/welcome"/>
               </Switch>
             </div>
           </main>
