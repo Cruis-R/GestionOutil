@@ -299,7 +299,12 @@ export default class Report extends Component {
     let header = "Rapport d’activité sur la période du " + dateStart + " Au " +dateEnd+" pour le scooter "+scooter_id ;
     return (
       <div className="animated fadeIn m-4">
-        <div className="row">
+        <div className="row" id="printArea">
+          <button type="button" id="printButton" onClick={()=>{
+              document.getElementById("printButton").hidden=true;
+              window.print();
+              document.getElementById("printButton").hidden=false;
+            }}>Print</button>
           <h1 className="text-info text-center col-12">{header}</h1>
           <div className="col-sm-4 col-lg-3 offset-md-3">
             <div className="card card-inverse card-primary">

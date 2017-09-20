@@ -6,29 +6,6 @@ import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import classnames from 'classnames';
 import urls from '../configs/serverConfigurations';
 import Map from './Geolocaliser/Map';
-const data = [{
-  "id_scooter" : 1,
-  "num_cruisrent" : "00000001",
-  "statut" : "1",
-  "actif" : true ,
-  "id_boitier" : "0001",
-  "id_contrat" : "001",
-  "immat" : "00000001",
-  "date_immat" : "2017-08-03",
-  "type_usage" : 1,
-  "nb_kms" : 150
-},{
-  "id_scooter" : 1,
-  "num_cruisrent" : "00000001",
-  "statut" : "2",
-  "actif" : true ,
-  "id_boitier" : "",
-  "id_contrat" : "",
-  "immat" : "00000001",
-  "date_immat" : "2017-08-03",
-  "type_usage" : 1,
-  "nb_kms" : 150
-}];
 const statut = {
   1 : "Maintenance",
   2 : "Disponible",
@@ -59,7 +36,7 @@ export default class GestionDesScooters extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeTab: '2',
+      activeTab: '1',
       isInsertScooterModal : false,
       isInsertScooterSuccess : true,
       isModifierScooterModal : false,
@@ -107,26 +84,36 @@ export default class GestionDesScooters extends Component {
     this.getData();
   }
   getData(){
-    fetch(urlStatuts)
-    .then((response) => response.json())
-    .then((responseJson)=>{
+    var promises = [fetch(urlStatuts).then((response) => response.json()),
+      fetch(urlScooters).then((response) => response.json()),
+      fetch("http://vps92599.ovh.net:8082/api/positions",{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json()),
+      fetch("http://vps92599.ovh.net:8082/api/devices",{credentials: 'include',headers: {'Accept': 'application/json'}}).then(y => y.json())
+    ];
+    Promise.all(promises)
+    .then(results => {
+      let deviceData = results[3];
+      let positionData = results[2];
+      let scooters = results[1];
+      let statuts = results[0];
+      let scooterList = []
+      scooters.map((instance)=>{
+        deviceData.map((deviceInstance)=>{
+          instance["id_scooter"]===deviceInstance["id"]?scooterList.push(instance):null
+        })
+      })
+      scooterList.map((instance)=>{
+        positionData.map((positionInstance)=>{
+          instance["id_scooter"]===positionInstance["deviceId"]?instance["nb_kms"]=(positionInstance["attributes"]["totalDistance"]/1000).toFixed(2):null
+        })
+      })
       this.setState({
-        statutsData : responseJson
+        scootersData : scooterList,
+        statutsData : statuts
       })
     })
-    .catch((error) => {
-      console.error(error);
-    });
-    fetch(urlScooters)
-    .then((response) => response.json())
-    .then((responseJson)=>{
-      this.setState({
-        scootersData : responseJson
-      })
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+    .catch(err=>{console.log(err);});
+
+
   }
   getAssocierBoitierData(){
     fetch(urlBoitiersAssocier)
@@ -478,11 +465,16 @@ export default class GestionDesScooters extends Component {
     }
   }
   scootersGestionFormatter(cell,row){
-    return (
+    /*return (
       <div>
         <button type="button" className="btn btn-success btn-sm col-sm-4" onClick={()=>this.toggleModifierScooterModal(row)}>Modifier</button>
         <button type="button" className="btn btn-primary btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Rapport</button>
         <button type="button" className="btn btn-info btn-sm col-sm-4" onClick={()=>this.toggleScooterContratModal(row)}>Voir Contrat</button>
+      </div>
+    );*/
+    return (
+      <div>
+        <button type="button" className="btn btn-primary btn-sm col-sm-4" onClick={()=>this.toggleInfoCompletModal(row)}>Rapport</button>
       </div>
     );
   }
@@ -521,6 +513,9 @@ export default class GestionDesScooters extends Component {
         <button type="button" className="btn btn-danger btn-sm col" onClick={()=>this.toggleAssocierContratModal(row,2)}>Dissocier {cell}</button>
       );
     }
+  }
+  dateFormatter(cell){
+    return cell?new Date(cell).toLocaleDateString():'';
   }
   scootersInsertButton = () => {
     return (
@@ -718,14 +713,15 @@ export default class GestionDesScooters extends Component {
                       options = {optionsScooters}
                       data={ this.state.scootersData }
                       headerStyle = { { "backgroundColor" : "#63c2de" } }
-                      insertRow
+                      insertRow = {false}
                       search
                       pagination>
 
                       <TableHeaderColumn
                         dataField="id_scooter"
                         isKey
-                        dataSort>
+                        dataSort
+                        hidden>
                         ID
                       </TableHeaderColumn>
                       <TableHeaderColumn
@@ -734,30 +730,26 @@ export default class GestionDesScooters extends Component {
                         Numéro CruisRent
                       </TableHeaderColumn>
                       <TableHeaderColumn
+                        dataField="immat"
+                        dataSort>
+                        N° Immat
+                      </TableHeaderColumn>
+                      <TableHeaderColumn
+                        dataField="date_immat"
+                        dataSortdate
+                        dataFormat={ this.dateFormatter }>
+                        Date Immat
+                      </TableHeaderColumn>
+                      <TableHeaderColumn
                         dataField="statut"
                         dataSort
                         dataFormat={ this.scooterStatutFormatter }>
                         Statut
                       </TableHeaderColumn>
                       <TableHeaderColumn
-                        dataField="actif"
-                        dataSort
-                        dataFormat={ this.actifFormatter }>
-                        Active
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="id_boitier"
-                        dataSort
-                        dataFormat={ this.scootersBoitierFormatter }
-                        tdStyle = {{"textAlign" : "center"}}>
-                        Boitier
-                      </TableHeaderColumn>
-                      <TableHeaderColumn
-                        dataField="id_contrat"
-                        dataSort
-                        dataFormat={ this.scootersContratFormatter }
-                        tdStyle = {{"textAlign" : "center"}}>
-                        Contrat
+                        dataField="nb_kms"
+                        dataSort>
+                        Nombre KM
                       </TableHeaderColumn>
                       <TableHeaderColumn
                         dataField=""

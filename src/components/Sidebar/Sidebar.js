@@ -71,9 +71,6 @@ class Sidebar extends Component {
       <div className="sidebar">
         <nav className="sidebar-nav">
           <ul className="nav">
-            <li className="nav-item">
-              <NavLink to={'/dashboard?'} className="nav-link" activeClassName="active"><i className="icon-speedometer"></i> Dashboard <span className="badge badge-info">NEW</span></NavLink>
-            </li>
             <li className="nav-title">
               Fonctions
             </li>
@@ -122,9 +119,9 @@ class Sidebar extends Component {
                 {this.state.access===1?<li className="nav-item">
                   <NavLink to={'/gestions/notifications?'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Notifications</NavLink>
                 </li>:null}
-                <li className="nav-item">
+                {this.state.access===1?<li className="nav-item">
                   <NavLink to={'/gestions/alertes?'} className="nav-link" activeClassName="active"><i className="fa fa-puzzle-piece"></i> Alertes</NavLink>
-                </li>
+                </li>:null}
               </ul>
             </li>
 

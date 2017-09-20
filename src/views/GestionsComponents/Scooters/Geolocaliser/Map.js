@@ -944,22 +944,25 @@ export default class Map extends Component{
       sortOrder: "desc",
     };
     const mileage = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['mileage']:'...';
-    const name = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:"...";
+    const name = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['name']:null;
     const address = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['address']:'...';
     const status = this.state.scooterNumClicked?this.state.geoData["features"][this.state.scooterNumClicked]["properties"]['status']:'...';
     return (
       <div className="row">
-        <h1 className="text-info text-center col-12">Map(Refresh in <CountDown /> Seconds)</h1>
+        <h1 className="text-info text-center col-12">Carte</h1>
         <div className="col-sm-12 col-lg-12">
           <div className="card">
             <div className="card-block p-3 clearfix row">
               <div className="col-lg-1">
                 <i className="fa fa-motorcycle bg-primary p-3 mt-1 font-xl float-left"></i>
               </div>
-              <div className="mt-2 col-lg-1 ">
+              {name?<div className="mt-2 col-lg-1 ">
                 <strong className="text-info">{name}</strong>
                 <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
-              </div>
+              </div>:<div className="mt-2 col-lg-3 ">
+                <strong className="text-info">Click un Scooter sur la carte</strong>
+                <div className="text-muted text-uppercase font-weight-bold font-xs">Scooter</div>
+              </div>}
               <div className={classnames("mt-2",{"col-lg-1" : mileage.length<=7,"col-lg-2" : mileage.length>7})}>
                 <strong className="text-info">{mileage}</strong>
                 <div className="text-muted text-uppercase font-weight-bold font-xs">parcours</div>
@@ -1012,22 +1015,7 @@ export default class Map extends Component{
                   Parcours
                 </NavLink>
               </NavItem>
-              <NavItem>
-                <NavLink
-                  className={classnames({ active: this.state.activeTab === '3' })}
-                  onClick={() => { this.toggle('3'); this.afficherGeofences()}}
-                >
-                  Geofence
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink
-                  className={classnames({ active: this.state.activeTab === '4' })}
-                  onClick={() => { this.toggle('4');}}
-                >
-                  Entrée Info
-                </NavLink>
-              </NavItem>
+
             </Nav>
             <TabContent activeTab={this.state.activeTab}>
               <TabPane tabId="1">
